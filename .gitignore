@@ -1,0 +1,86 @@
+# Python
+__pycache__/
+*.py[cod]
+*.so
+*.egg-info/
+*.eggs/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+*.log
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Secrets and credentials
+.env
+.env.*
+*.pem
+*.key
+secrets/
+credentials/
+
+# Data and models
+data/raw/
+data/processed/
+data/synthetic/
+models/
+*.pt
+*.onnx
+*.engine
+*.trt
+*.pth
+*.ckpt
+*.safetensors
+
+# ML artifacts
+lightning_logs/
+mlruns/
+wandb/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.sublime-*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Reports
+reports/*.png
+reports/*.jpg
+reports/*.json
+!reports/.gitkeep
+
+# Build
+dist/
+build/
+
+# C++
+*.o
+*.obj
+*.a
+*.lib
+*.dll
+*.exe
+*.so
+*.dylib
+CMakeFiles/
+cmake-build-*/
+CMakeCache.txt
+compile_commands.json
+cpp/build/
+
+# Coverage
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
