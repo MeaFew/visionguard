@@ -145,36 +145,41 @@ def convert_neu_det(
                 else:
                     path.unlink()
 
-    # Locate NEU-DET images and annotations
-    image_dirs = list(raw_dir.rglob("images"))
+    # Locate all NEU-DET images/annotations directories (handles nested archives
+    # such as archive/NEU-DET/train and archive/NEU-DET/validation, where images
+    # may be grouped into class subdirectories).
+    image_dirs = sorted(raw_dir.rglob("images"), key=lambda p: str(p))
     if not image_dirs:
         raise DatasetError(f"Could not find images directory under {raw_dir}")
 
-    src_image_dir = image_dirs[0]
-    src_anno_dir = src_image_dir.parent / "annotations"
-    if not src_anno_dir.exists():
-        # Try alternative naming
-        src_anno_dir = src_image_dir.parent / "Annotations"
-
-    if not src_anno_dir.exists():
-        raise DatasetError(f"Could not find annotations directory at {src_anno_dir}")
-
     supported_exts = {".jpg", ".jpeg", ".bmp", ".png"}
-    image_paths = sorted(
-        p for p in src_image_dir.iterdir() if p.suffix.lower() in supported_exts
-    )
-    if not image_paths:
-        raise DatasetError(f"No images found in {src_image_dir}")
-
-    # Filter images that have annotations
     valid_pairs: list[tuple[Path, Path]] = []
-    for img_path in image_paths:
-        xml_path = src_anno_dir / img_path.with_suffix(".xml").name
-        if xml_path.exists():
-            valid_pairs.append((img_path, xml_path))
+    for src_image_dir in image_dirs:
+        src_anno_dir = src_image_dir.parent / "annotations"
+        if not src_anno_dir.exists():
+            src_anno_dir = src_image_dir.parent / "Annotations"
+        if not src_anno_dir.exists():
+            continue
+
+        for img_path in src_image_dir.rglob("*"):
+            if img_path.suffix.lower() not in supported_exts:
+                continue
+            xml_path = src_anno_dir / img_path.with_suffix(".xml").name
+            if xml_path.exists():
+                valid_pairs.append((img_path, xml_path))
 
     if not valid_pairs:
         raise DatasetError("No image/annotation pairs found")
+
+    # Deduplicate by image name in case the same image appears in multiple splits.
+    seen: set[str] = set()
+    unique_pairs: list[tuple[Path, Path]] = []
+    for img_path, xml_path in valid_pairs:
+        if img_path.name in seen:
+            continue
+        seen.add(img_path.name)
+        unique_pairs.append((img_path, xml_path))
+    valid_pairs = unique_pairs
 
     train_pairs, val_pairs, test_pairs = split_dataset(
         valid_pairs, train_ratio=train_ratio, val_ratio=val_ratio, seed=seed

@@ -13,7 +13,8 @@ help:
 	@echo "  train        - Train YOLOv8 on NEU-DET"
 	@echo "  evaluate     - Evaluate trained YOLOv8 model"
 	@echo "  data         - Download and convert NEU-DET dataset"
-	@echo "  download     - Download NEU-DET only"
+	@echo "  download     - Download NEU-DET only (Google Drive)"
+	@echo "  download-kaggle - Download NEU-DET only (Kaggle)"
 	@echo "  clean        - Remove caches and generated files"
 
 install:
@@ -40,6 +41,9 @@ evaluate:
 
 download:
 	$(PYTHON) scripts/download_neu_det.py
+
+download-kaggle:
+	$(PYTHON) scripts/download_neu_det.py --source kaggle
 
 data: download
 	$(PYTHON) scripts/convert_annotations.py
