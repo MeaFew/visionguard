@@ -1,4 +1,4 @@
-.PHONY: help install install-dev lint format test data download clean
+.PHONY: help install install-dev lint format test train evaluate data download clean
 
 PYTHON := python
 PIP := python -m pip
@@ -10,6 +10,8 @@ help:
 	@echo "  lint         - Run ruff linter"
 	@echo "  format       - Run ruff formatter"
 	@echo "  test         - Run pytest"
+	@echo "  train        - Train YOLOv8 on NEU-DET"
+	@echo "  evaluate     - Evaluate trained YOLOv8 model"
 	@echo "  data         - Download and convert NEU-DET dataset"
 	@echo "  download     - Download NEU-DET only"
 	@echo "  clean        - Remove caches and generated files"
@@ -29,6 +31,12 @@ format:
 
 test:
 	$(PYTHON) -m pytest tests -v
+
+train:
+	$(PYTHON) scripts/train_yolo.py
+
+evaluate:
+	$(PYTHON) scripts/evaluate.py
 
 download:
 	$(PYTHON) scripts/download_neu_det.py
