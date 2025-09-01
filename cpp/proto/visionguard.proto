@@ -1,0 +1,66 @@
+syntax = "proto3";
+
+package visionguard;
+
+// Request to run object detection on an image.
+message DetectRequest {
+    // Raw image bytes (e.g. JPEG or PNG).
+    bytes image_data = 1;
+
+    // Optional confidence threshold. Default is configured by server.
+    float conf_threshold = 2;
+
+    // Optional IoU threshold for NMS. Default is configured by server.
+    float iou_threshold = 3;
+}
+
+// A single detected object.
+message Detection {
+    int32 class_id = 1;
+    string class_name = 2;
+    float confidence = 3;
+    float x1 = 4;
+    float y1 = 5;
+    float x2 = 6;
+    float y2 = 7;
+}
+
+// Response from Detect RPC.
+message DetectResponse {
+    repeated Detection detections = 1;
+    int32 image_width = 2;
+    int32 image_height = 3;
+}
+
+// Health check request.
+message HealthRequest {}
+
+// Health check response.
+message HealthResponse {
+    string status = 1;
+    string model_path = 2;
+}
+
+// Benchmark request.
+message BenchmarkRequest {
+    int32 iterations = 1;
+}
+
+// Benchmark response.
+message BenchmarkResponse {
+    int32 iterations = 1;
+    float total_ms = 2;
+    float avg_ms = 3;
+}
+
+// VisionGuard inference service.
+service VisionGuard {
+    // Run object detection on the provided image.
+    rpc Detect(DetectRequest) returns (DetectResponse);
+
+    // Health check endpoint.
+    rpc Health(HealthRequest) returns (HealthResponse);
+
+    // Run a benchmark of the inference engine.
+    rpc Benchmark(BenchmarkRequest) returns (BenchmarkResponse);
+}
