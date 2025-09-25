@@ -1,0 +1,28 @@
+version: "3.8"
+
+services:
+  visionguard-train:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: visionguard/train:latest
+    container_name: visionguard-train
+    volumes:
+      - ./data:/app/data
+      - ./models:/app/models
+      - ./reports:/app/reports
+    command: ["python", "scripts/train_yolo.py", "--epochs", "100"]
+
+  visionguard-server:
+    build:
+      context: .
+      dockerfile: deployment/docker/Dockerfile.cpp
+    image: visionguard/server:latest
+    container_name: visionguard-server
+    ports:
+      - "50051:50051"
+    volumes:
+      - ./models:/app/models:ro
+    depends_on:
+      - visionguard-train
+    command: ["--model", "/app/models/train/weights/best.onnx", "--address", "0.0.0.0:50051"]

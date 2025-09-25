@@ -1,0 +1,20 @@
+[Unit]
+Description=VisionGuard C++ Inference Service
+After=network.target
+
+[Service]
+Type=simple
+User=visionguard
+Group=visionguard
+WorkingDirectory=/opt/visionguard
+ExecStart=/opt/visionguard/cpp/build/visionguard_server --model /opt/visionguard/models/train/weights/best.onnx --address 0.0.0.0:50051
+Restart=on-failure
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+
+# Resource limits
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target
