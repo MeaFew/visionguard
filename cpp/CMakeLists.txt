@@ -10,9 +10,16 @@ option(BUILD_TESTS "Build C++ unit tests" ON)
 
 # Find dependencies
 find_package(OpenCV REQUIRED)
-find_package(ONNXRuntime REQUIRED)
+find_package(ONNXRuntime QUIET)
+if(NOT ONNXRuntime_FOUND)
+    find_package(onnxruntime QUIET)
+endif()
 find_package(Protobuf REQUIRED)
 find_package(gRPC REQUIRED)
+
+if(NOT TARGET ONNXRuntime::ONNXRuntime AND NOT TARGET onnxruntime)
+    message(FATAL_ERROR "ONNX Runtime target not found. Install ONNX Runtime and set CMAKE_PREFIX_PATH.")
+endif()
 
 # Protobuf / gRPC generation
 set(PROTO_FILE proto/visionguard.proto)
@@ -55,9 +62,15 @@ add_library(visionguard_inference
 target_include_directories(visionguard_inference
     PUBLIC include
 )
+if(TARGET ONNXRuntime::ONNXRuntime)
+    set(ONNX_RUNTIME_TARGET ONNXRuntime::ONNXRuntime)
+else()
+    set(ONNX_RUNTIME_TARGET onnxruntime)
+endif()
+
 target_link_libraries(visionguard_inference
     PUBLIC ${OpenCV_LIBS}
-    PUBLIC ONNXRuntime::ONNXRuntime
+    PUBLIC ${ONNX_RUNTIME_TARGET}
 )
 
 # gRPC server library
@@ -83,7 +96,7 @@ target_link_libraries(visionguard_server
 if(BUILD_TESTS)
     find_package(Catch2 3 QUIET)
     if(Catch2_FOUND)
-        add_executable(visionguard_tests cpp/tests/test_inference.cpp)
+        add_executable(visionguard_tests tests/test_inference.cpp)
         target_link_libraries(visionguard_tests
             PRIVATE visionguard_inference
             PRIVATE Catch2::Catch2WithMain

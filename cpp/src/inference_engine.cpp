@@ -81,16 +81,18 @@ InferenceEngine::InferenceEngine(
     session_options_.SetIntraOpNumThreads(num_threads);
     session_options_.SetGraphOptimizationLevel(GraphOptimizationLevel::ORT_ENABLE_ALL);
 
-    // Get input/output node names.
+    // Get input/output node names (store as std::string to keep memory alive).
     Ort::AllocatorWithDefaultOptions allocator;
     const std::size_t num_inputs = session_.GetInputCount();
     for (std::size_t i = 0; i < num_inputs; ++i) {
-        input_node_names_.push_back(session_.GetInputNameAllocated(i, allocator).get());
+        auto name_ptr = session_.GetInputNameAllocated(i, allocator);
+        input_node_names_.emplace_back(name_ptr.get());
     }
 
     const std::size_t num_outputs = session_.GetOutputCount();
     for (std::size_t i = 0; i < num_outputs; ++i) {
-        output_node_names_.push_back(session_.GetOutputNameAllocated(i, allocator).get());
+        auto name_ptr = session_.GetOutputNameAllocated(i, allocator);
+        output_node_names_.emplace_back(name_ptr.get());
     }
 
     input_shape_vec_ = {
@@ -98,13 +100,6 @@ InferenceEngine::InferenceEngine(
         input_shape_.channels,
         input_shape_.height,
         input_shape_.width,
-    };
-
-    // Typical YOLOv8 ONNX output shape: 1 x 84 x 8400.
-    output_shape_vec_ = {
-        input_shape_.batch,
-        4 + static_cast<std::int64_t>(class_names_.size()),
-        8400,
     };
 }
 
@@ -127,35 +122,52 @@ std::vector<Detection> InferenceEngine::infer_from_tensor(
         input_shape_vec_.data(),
         input_shape_vec_.size());
 
-    Ort::Value output_tensor_ort = Ort::Value::CreateTensor<float>(
-        memory_info_,
-        output_shape_vec_.data(),
-        output_shape_vec_.size());
+    std::vector<const char*> input_names_cstr;
+    input_names_cstr.reserve(input_node_names_.size());
+    for (const auto& name : input_node_names_) {
+        input_names_cstr.push_back(name.c_str());
+    }
 
-    session_.Run(
+    std::vector<const char*> output_names_cstr;
+    output_names_cstr.reserve(output_node_names_.size());
+    for (const auto& name : output_node_names_) {
+        output_names_cstr.push_back(name.c_str());
+    }
+
+    auto output_tensors = session_.Run(
         Ort::RunOptions{nullptr},
-        input_node_names_.data(),
+        input_names_cstr.data(),
         &input_tensor_ort,
-        input_node_names_.size(),
-        output_node_names_.data(),
-        &output_tensor_ort,
-        output_node_names_.size());
+        input_names_cstr.size(),
+        output_names_cstr.data(),
+        output_names_cstr.size());
 
-    std::vector<float> output_data(output_tensor_ort.GetTensorMutableData<float>(),
-                                   output_tensor_ort.GetTensorMutableData<float>() +
-                                       output_shape_vec_[0] * output_shape_vec_[1] * output_shape_vec_[2]);
+    Ort::Value& output_tensor = output_tensors.front();
+    const auto output_info = output_tensor.GetTensorTypeAndShapeInfo();
+    const std::vector<std::int64_t> output_shape = output_info.GetShape();
+    std::int64_t output_count = 1;
+    for (auto dim : output_shape) {
+        output_count *= dim;
+    }
 
-    return decode_output(output_data, info, original_width, original_height);
+    float* raw_output = output_tensor.GetTensorMutableData<float>();
+    std::vector<float> output_data(raw_output, raw_output + output_count);
+
+    return decode_output(output_data, output_shape, info, original_width, original_height);
 }
 
 std::vector<Detection> InferenceEngine::decode_output(
     const std::vector<float>& output_data,
+    const std::vector<std::int64_t>& output_shape,
     const LetterboxInfo& info,
     int original_width,
     int original_height) {
+    if (output_shape.size() != 3) {
+        throw std::runtime_error("Unexpected output tensor rank");
+    }
     const int num_classes = static_cast<int>(class_names_.size());
-    const int rows = static_cast<int>(output_shape_vec_[2]);  // 8400
-    const int cols = static_cast<int>(output_shape_vec_[1]);  // 84
+    const int rows = static_cast<int>(output_shape[2]);  // 8400
+    const int cols = static_cast<int>(output_shape[1]);  // 84
 
     std::vector<Detection> candidates;
     candidates.reserve(rows);

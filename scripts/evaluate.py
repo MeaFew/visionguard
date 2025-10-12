@@ -40,12 +40,19 @@ def main() -> None:
         default=str(DEFAULT_OUTPUT),
         help="Path to write evaluation metrics JSON",
     )
+    parser.add_argument(
+        "--split",
+        type=str,
+        default="val",
+        choices=["train", "val", "test"],
+        help="Dataset split to evaluate on",
+    )
     args = parser.parse_args()
 
     detector = YOLODetector(device=args.device)
     try:
         detector.load(args.model)
-        metrics = detector.validate(data_yaml=args.config)
+        metrics = detector.validate(data_yaml=args.config, split=args.split)
 
         output_path = Path(args.output)
         output_path.parent.mkdir(parents=True, exist_ok=True)

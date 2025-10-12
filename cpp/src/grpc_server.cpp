@@ -8,21 +8,6 @@
 
 namespace visionguard {
 
-namespace {
-
-std::vector<std::string> default_class_names() {
-    return {
-        "crazing",
-        "inclusion",
-        "patches",
-        "pitted_surface",
-        "rolled-in_scale",
-        "scratches",
-    };
-}
-
-}  // namespace
-
 VisionGuardServiceImpl::VisionGuardServiceImpl(std::shared_ptr<InferenceEngine> engine)
     : engine_(std::move(engine)) {}
 
@@ -41,9 +26,9 @@ grpc::Status VisionGuardServiceImpl::Detect(
     }
 
     try {
-        std::vector<Detection> dets = engine_->detect(image);
+        std::vector<visionguard::Detection> dets = engine_->detect(image);
         for (const auto& d : dets) {
-            Detection* out = response->add_detections();
+            auto* out = response->add_detections();
             out->set_class_id(d.class_id);
             out->set_class_name(d.class_name);
             out->set_confidence(d.confidence);

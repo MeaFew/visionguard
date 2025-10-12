@@ -64,7 +64,7 @@ def nms(boxes: np.ndarray, scores: np.ndarray, iou_threshold: float) -> list[int
         union = areas[i] + areas[order[1:]] - inter
         iou = inter / np.maximum(union, 1e-6)
 
-        order = order[np.where(iou <= iou_threshold)[0] + 1]
+        order = order[np.where(iou < iou_threshold)[0] + 1]
 
     return keep
 

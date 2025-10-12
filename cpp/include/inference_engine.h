@@ -46,6 +46,7 @@ private:
     // Decode YOLOv8 ONNX output (1 x (4 + C) x 8400) into detection boxes.
     std::vector<Detection> decode_output(
         const std::vector<float>& output_data,
+        const std::vector<std::int64_t>& output_shape,
         const LetterboxInfo& info,
         int original_width,
         int original_height);
@@ -61,10 +62,9 @@ private:
     Ort::Session session_;
     Ort::MemoryInfo memory_info_;
 
-    std::vector<const char*> input_node_names_;
-    std::vector<const char*> output_node_names_;
+    std::vector<std::string> input_node_names_;
+    std::vector<std::string> output_node_names_;
     std::vector<std::int64_t> input_shape_vec_;
-    std::vector<std::int64_t> output_shape_vec_;
 };
 
 }  // namespace visionguard

@@ -31,6 +31,10 @@ std::vector<float> ImagePreprocessor::preprocess(
     const int new_w = static_cast<int>(image.cols * info.scale);
     const int new_h = static_cast<int>(image.rows * info.scale);
 
+    if (new_w <= 0 || new_h <= 0) {
+        throw std::invalid_argument("Computed resize dimensions must be positive");
+    }
+
     info.pad_left = (target_w - new_w) / 2;
     info.pad_top = (target_h - new_h) / 2;
 

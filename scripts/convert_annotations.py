@@ -136,7 +136,14 @@ def convert_neu_det(
     raw_dir = data_dir / "raw"
     processed_dir = data_dir / "processed"
     if processed_dir.exists():
-        shutil.rmtree(processed_dir)
+        # Only remove expected subdirectories to avoid accidental data loss.
+        for sub in ["train", "val", "test", "neu_det.yaml"]:
+            path = processed_dir / sub
+            if path.exists():
+                if path.is_dir():
+                    shutil.rmtree(path)
+                else:
+                    path.unlink()
 
     # Locate NEU-DET images and annotations
     image_dirs = list(raw_dir.rglob("images"))

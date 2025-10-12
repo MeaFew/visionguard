@@ -23,11 +23,18 @@ def extract_archive(archive_path: Path, dst_dir: Path) -> None:
     """Extract zip or tar.gz archive safely, guarding against path traversal."""
     dst_dir = dst_dir.resolve()
 
+    def _is_safe(target: Path) -> bool:
+        try:
+            target.relative_to(dst_dir)
+            return True
+        except ValueError:
+            return False
+
     if archive_path.suffix == ".zip":
         with zipfile.ZipFile(archive_path, "r") as zf:
             for member in zf.infolist():
                 target = (dst_dir / member.filename).resolve()
-                if not str(target).startswith(str(dst_dir) + "\\") and not str(target).startswith(str(dst_dir) + "/"):
+                if not _is_safe(target):
                     print(f"Skipping unsafe archive member: {member.filename}")
                     continue
                 zf.extract(member, dst_dir)
@@ -35,7 +42,7 @@ def extract_archive(archive_path: Path, dst_dir: Path) -> None:
         with tarfile.open(archive_path, "r:gz") as tf:
             for member in tf.getmembers():
                 target = (dst_dir / member.name).resolve()
-                if not str(target).startswith(str(dst_dir) + "\\") and not str(target).startswith(str(dst_dir) + "/"):
+                if not _is_safe(target):
                     print(f"Skipping unsafe archive member: {member.name}")
                     continue
                 tf.extract(member, dst_dir)
