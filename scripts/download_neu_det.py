@@ -73,7 +73,6 @@ def download_neu_det(data_dir: Path | str = DEFAULT_DATA_DIR, force: bool = Fals
                 id=GOOGLE_DRIVE_FILE_ID,
                 output=str(archive_path),
                 quiet=False,
-                fuzzy=True,
             )
         except Exception as exc:  # pragma: no cover
             print(f"Google Drive download failed: {exc}")

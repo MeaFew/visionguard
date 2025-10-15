@@ -79,7 +79,14 @@ class YOLODetector:
         except Exception as exc:
             raise DetectorError(f"Training failed: {exc}") from exc
 
-        best_path = Path(project) / name / "weights" / "best.pt"
+        # Ultralytics may place results under runs/detect/ depending on settings.
+        trainer = getattr(self.model, "trainer", None)
+        trainer_save_dir = getattr(trainer, "save_dir", None)
+        if isinstance(trainer_save_dir, (str, Path)):
+            save_dir = Path(trainer_save_dir)
+        else:
+            save_dir = Path(project) / name
+        best_path = save_dir / "weights" / "best.pt"
         if not best_path.exists():
             raise DetectorError(f"Expected best model not found at {best_path}")
         return best_path

@@ -74,21 +74,37 @@ def decode_yolov8_output(
     class_names: list[str],
     conf_threshold: float = 0.25,
     iou_threshold: float = 0.45,
+    input_size: int = 640,
     img_width: int = 640,
     img_height: int = 640,
+    scale: float = 1.0,
+    pad_left: int = 0,
+    pad_top: int = 0,
 ) -> list[Detection]:
-    """Decode YOLOv8 ONNX output (shape: 1 x 84 x 8400) into detection list.
+    """Decode YOLOv8 ONNX output (shape: 1 x (4 + C) x 8400) into detection list.
 
     The output format from Ultralytics YOLOv8 ONNX export is:
         [batch, 4 + num_classes, num_anchors]
-    where the first 4 channels are box coordinates (xywh, normalized) and
-    the remaining channels are class logits.
+    where the first 4 channels are box coordinates (xywh, normalized to the
+    model input size) and the remaining channels are class logits.
+
+    Args:
+        output: ONNX model output tensor.
+        class_names: List of class names.
+        conf_threshold: Minimum confidence score to keep a detection.
+        iou_threshold: IoU threshold for NMS.
+        input_size: Model input width/height (square) used to normalize box coords.
+        img_width: Original image width for final clipping.
+        img_height: Original image height for final clipping.
+        scale: Letterbox resize scale (original / resized).
+        pad_left: Letterbox left padding in model-input pixels.
+        pad_top: Letterbox top padding in model-input pixels.
     """
     if output.ndim != 3 or output.shape[0] != 1:
         raise ValueError(f"Unexpected output shape: {output.shape}")
 
-    predictions = output[0]  # shape: (84, 8400)
-    predictions = predictions.transpose(1, 0)  # shape: (8400, 84)
+    predictions = output[0]
+    predictions = predictions.transpose(1, 0)
 
     boxes = predictions[:, :4]
     class_scores = predictions[:, 4:]
@@ -104,8 +120,16 @@ def decode_yolov8_output(
         return []
 
     boxes_xyxy = xywh2xyxy(boxes)
-    boxes_xyxy[:, [0, 2]] *= img_width
-    boxes_xyxy[:, [1, 3]] *= img_height
+
+    # YOLOv8 ONNX export returns xywh in model-input pixel coordinates.
+    # Remove letterbox padding and rescale to original image coordinates.
+    boxes_xyxy[:, [0, 2]] -= pad_left
+    boxes_xyxy[:, [1, 3]] -= pad_top
+    boxes_xyxy /= scale
+
+    # Clamp to original image bounds.
+    boxes_xyxy[:, [0, 2]] = np.clip(boxes_xyxy[:, [0, 2]], 0, img_width)
+    boxes_xyxy[:, [1, 3]] = np.clip(boxes_xyxy[:, [1, 3]], 0, img_height)
 
     keep = nms(boxes_xyxy, scores, iou_threshold)
 

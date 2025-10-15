@@ -67,6 +67,11 @@ def main() -> None:
         default=DEFAULT_NAME,
         help="Experiment name",
     )
+    parser.add_argument(
+        "--exist-ok",
+        action="store_true",
+        help="Overwrite existing experiment directory",
+    )
     args = parser.parse_args()
 
     detector = YOLODetector(device=args.device)
@@ -79,6 +84,7 @@ def main() -> None:
             batch=args.batch,
             project=args.project,
             name=args.name,
+            exist_ok=args.exist_ok,
         )
         print(f"Training complete. Best model: {best_path}")
     except VisionGuardError as exc:

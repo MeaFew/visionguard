@@ -36,12 +36,33 @@ python scripts/evaluate.py
 # 5. 导出 ONNX
 python scripts/export_onnx.py
 
-# 6. 编译并运行 C++ 推理服务
+# 6. Python 端到端推理 demo
+python scripts/demo_inference.py --model runs/detect/models/demo_train/weights/best.onnx --image data/processed/test/images/synthetic_0003.jpg --output reports/demo_detection.jpg
+
+# 7. 编译并运行 C++ 推理服务
 cd cpp && mkdir build && cd build
 cmake .. -DCMAKE_PREFIX_PATH="/opt/onnxruntime/lib/cmake/onnxruntime"
 make -j$(nproc)
 ./visionguard_server --model ../../models/train/weights/best.onnx
 ```
+
+## Demo 结果
+
+由于 NEU-DET 公开下载链接（Google Drive）存在访问配额/权限限制，本仓库的 Demo 使用 `scripts/generate_synthetic_data.py` 生成的合成数据跑通完整链路。合成数据仅用于验证 pipeline 正确性，不代表真实场景性能。
+
+使用 YOLOv8n 在 100 张合成样本上训练 50 epoch（CPU），测试集指标如下：
+
+```json
+{
+  "map50": 0.679,
+  "map75": 0.542,
+  "map": 0.487
+}
+```
+
+ONNX 推理可视化示例（`scripts/demo_inference.py` 输出）：
+
+![Demo detection](assets/demo_detection.jpg)
 
 ## 测试
 

@@ -40,8 +40,8 @@ def test_decode_yolov8_output_realistic() -> None:
     class_names = ["background"] * 80
     class_names[class_id] = "person"
 
-    # xywh box normalized to image size.
-    output[0, :4, anchor] = np.array([0.5, 0.5, 0.2, 0.3], dtype=np.float32)
+    # YOLOv8 ONNX export returns xywh in model-input pixel coordinates.
+    output[0, :4, anchor] = np.array([320.0, 320.0, 128.0, 192.0], dtype=np.float32)
     output[0, 4 + class_id, anchor] = 0.9
 
     dets = decode_yolov8_output(output, class_names=class_names)
