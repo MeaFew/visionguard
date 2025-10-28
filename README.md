@@ -18,9 +18,7 @@
 | 测试与文档 | 2025-10-01 ~ 2025-10-15 | pytest、集成测试、benchmark |
 | 收尾优化 | 2025-10-16 ~ 2025-10-31 | 性能调优、文档完善 |
 
-## 完整流程（开发完成后）
-
-> 注：以下命令展示 VisionGuard 的完整使用流程。项目按 2025-08 ~ 2025-10 分阶段实现，部分脚本/服务在后续 Plan 中才会加入。
+## 快速开始
 
 ```bash
 # 1. 安装依赖
@@ -29,15 +27,46 @@ make install-dev
 # 2. 下载并准备 NEU-DET 数据集
 make data
 
-# 3. 训练 YOLOv8（见 Plan 2）
+# 3. 训练 YOLOv8
 python scripts/train_yolo.py
 
-# 4. 导出 ONNX（见 Plan 2）
+# 4. 评估模型
+python scripts/evaluate.py
+
+# 5. 导出 ONNX
 python scripts/export_onnx.py
 
-# 5. 编译并运行 C++ 推理服务（见 Plan 3）
-cd cpp && mkdir build && cd build && cmake .. && make -j$(nproc)
-./visionguard_server --model ../../models/best.onnx
+# 6. 编译并运行 C++ 推理服务
+cd cpp && mkdir build && cd build
+cmake .. -DCMAKE_PREFIX_PATH="/opt/onnxruntime/lib/cmake/onnxruntime"
+make -j$(nproc)
+./visionguard_server --model ../../models/train/weights/best.onnx
+```
+
+## 测试
+
+```bash
+# Python 测试
+pytest tests/ -v
+
+# 代码格式检查
+ruff check .
+ruff format --check .
+```
+
+## 部署
+
+### Docker Compose
+
+```bash
+docker-compose up --build
+```
+
+### Linux 原生部署
+
+```bash
+sudo bash deployment/scripts/deploy.sh
+sudo bash deployment/scripts/health_check.sh
 ```
 
 ## 技术栈
@@ -49,19 +78,22 @@ cd cpp && mkdir build && cd build && cmake .. && make -j$(nproc)
 - Docker + Docker Compose（容器化部署）
 - systemd + bash（Linux 运维）
 - pytest + Catch2（测试）
+- GitHub Actions（CI/CD）
 
 ## 目录结构
 
 ```text
 visionguard/
-├── data/           # 数据集
-├── scripts/        # 可执行脚本
-├── visionguard/    # Python 包
+├── configs/        # YOLOv8 训练配置
 ├── cpp/            # C++ 推理服务
+├── data/           # 数据集
 ├── deployment/     # Docker / systemd / 运维脚本
-├── tests/          # Python 测试
 ├── docs/           # 文档
-└── reports/        # 评估与 benchmark 报告
+├── notebooks/      # Jupyter 数据探索
+├── reports/        # 评估与 benchmark 报告
+├── scripts/        # 可执行脚本
+├── tests/          # Python 测试
+└── visionguard/    # Python 包
 ```
 
 ## 许可证
