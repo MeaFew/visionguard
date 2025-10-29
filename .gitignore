@@ -40,6 +40,8 @@ models/
 lightning_logs/
 mlruns/
 wandb/
+runs/
+.cache/
 
 # IDE
 .vscode/
