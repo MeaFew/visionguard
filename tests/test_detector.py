@@ -61,7 +61,9 @@ def test_detector_load_calls_yolo(mock_yolo: MagicMock) -> None:
 
 
 @patch("visionguard.core.detector.YOLO")
-def test_detector_train_calls_train_and_returns_best_path(mock_yolo: MagicMock, tmp_path: Path) -> None:
+def test_detector_train_calls_train_and_returns_best_path(
+    mock_yolo: MagicMock, tmp_path: Path
+) -> None:
     detector = YOLODetector()
     detector.load("yolov8n.pt")
     mock_model = mock_yolo.return_value

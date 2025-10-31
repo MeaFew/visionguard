@@ -46,9 +46,7 @@ class Preprocessor:
 
         for value in sizes:
             if not isinstance(value, int) or value <= 0 or value % 2 == 0:
-                raise ValueError(
-                    f"{name} values must be positive odd integers, got {kernel_size}"
-                )
+                raise ValueError(f"{name} values must be positive odd integers, got {kernel_size}")
 
     def gaussian_blur(
         self, image: np.ndarray, kernel_size: tuple[int, int] = (5, 5), sigma: float = 1.0

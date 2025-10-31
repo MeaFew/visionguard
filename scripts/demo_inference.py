@@ -37,13 +37,13 @@ def main() -> None:
     parser.add_argument(
         "--model",
         type=str,
-        default="runs/detect/models/demo_train/weights/best.onnx",
+        default="runs/detect/models/real_train/weights/best.onnx",
         help="Path to ONNX model",
     )
     parser.add_argument(
         "--image",
         type=str,
-        default="data/processed/test/images/synthetic_0080.jpg",
+        default="data/processed/test/images/inclusion_14.jpg",
         help="Path to input image",
     )
     parser.add_argument(
@@ -92,7 +92,9 @@ def main() -> None:
 
     print(f"Found {len(detections)} detections:")
     for det in detections:
-        print(f"  {det.class_name}: {det.confidence:.2f} at ({det.x1:.1f}, {det.y1:.1f}) - ({det.x2:.1f}, {det.y2:.1f})")
+        print(
+            f"  {det.class_name}: {det.confidence:.2f} at ({det.x1:.1f}, {det.y1:.1f}) - ({det.x2:.1f}, {det.y2:.1f})"
+        )
 
     output_path = Path(args.output)
     output_path.parent.mkdir(parents=True, exist_ok=True)

@@ -108,9 +108,7 @@ class YOLODetector:
         except Exception as exc:
             raise DetectorError(f"Failed to extract validation metrics: {exc}") from exc
 
-    def predict(
-        self, image_path: str | Path, save: bool = False, **kwargs: Any
-    ) -> list[Results]:
+    def predict(self, image_path: str | Path, save: bool = False, **kwargs: Any) -> list[Results]:
         """Run inference on a single image or list of images."""
         if self.model is None:
             raise DetectorError("Model not loaded. Call load() first.")

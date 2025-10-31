@@ -10,7 +10,7 @@ from visionguard.core.detector import YOLODetector
 from visionguard.exceptions import VisionGuardError
 
 DEFAULT_CONFIG = Path("configs/yolov8_neu_det.yaml")
-DEFAULT_MODEL = Path("models/train/weights/best.pt")
+DEFAULT_MODEL = Path("runs/detect/models/real_train/weights/best.pt")
 DEFAULT_OUTPUT = Path("reports/evaluation.json")
 
 

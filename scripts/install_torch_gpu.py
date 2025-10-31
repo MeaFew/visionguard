@@ -2,13 +2,11 @@
 
 from __future__ import annotations
 
-import shutil
 import subprocess
 import sys
 from pathlib import Path
 
 import requests
-from tqdm import tqdm
 
 WHEELS = [
     (
@@ -55,7 +53,10 @@ def download(url: str, dst: Path) -> None:
                 if total > 0:
                     percent = downloaded / total * 100
                     bar = _draw_bar(percent)
-                    print(f"\r{bar}  {downloaded / (1024 * 1024):.1f}/{total / (1024 * 1024):.1f} MB", end="")
+                    print(
+                        f"\r{bar}  {downloaded / (1024 * 1024):.1f}/{total / (1024 * 1024):.1f} MB",
+                        end="",
+                    )
                     sys.stdout.flush()
         print()  # newline after completion
 
@@ -64,7 +65,7 @@ def main() -> None:
     CACHE_DIR.mkdir(parents=True, exist_ok=True)
 
     wheel_paths: list[Path] = []
-    for name, url in WHEELS:
+    for _, url in WHEELS:
         filename = url.split("/")[-1]
         dst = CACHE_DIR / filename
         download(url, dst)
@@ -78,7 +79,13 @@ def main() -> None:
     )
     print("PyTorch GPU installation complete.")
     print("Verifying CUDA availability:")
-    subprocess.run([sys.executable, "-c", "import torch; print(torch.__version__); print('CUDA available:', torch.cuda.is_available())"])
+    subprocess.run(
+        [
+            sys.executable,
+            "-c",
+            "import torch; print(torch.__version__); print('CUDA available:', torch.cuda.is_available())",
+        ]
+    )
 
 
 if __name__ == "__main__":

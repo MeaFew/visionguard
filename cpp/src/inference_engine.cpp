@@ -9,6 +9,14 @@ namespace visionguard {
 
 namespace {
 
+// Build configured Ort::SessionOptions before constructing the Ort::Session.
+Ort::SessionOptions make_session_options(int num_threads) {
+    Ort::SessionOptions opts;
+    opts.SetIntraOpNumThreads(num_threads);
+    opts.SetGraphOptimizationLevel(GraphOptimizationLevel::ORT_ENABLE_ALL);
+    return opts;
+}
+
 // Greedy NMS on [x1, y1, x2, y2] boxes.
 std::vector<int> nms(
     const std::vector<Detection>& detections,
@@ -75,12 +83,9 @@ InferenceEngine::InferenceEngine(
       iou_threshold_(iou_threshold),
       input_shape_(input_shape),
       env_(ORT_LOGGING_LEVEL_WARNING, "VisionGuard"),
-      session_options_(),
+      session_options_(make_session_options(num_threads)),
       session_(env_, model_path_.c_str(), session_options_),
       memory_info_(Ort::MemoryInfo::CreateCpu(OrtArenaAllocator, OrtMemTypeDefault)) {
-    session_options_.SetIntraOpNumThreads(num_threads);
-    session_options_.SetGraphOptimizationLevel(GraphOptimizationLevel::ORT_ENABLE_ALL);
-
     // Get input/output node names (store as std::string to keep memory alive).
     Ort::AllocatorWithDefaultOptions allocator;
     const std::size_t num_inputs = session_.GetInputCount();
@@ -194,14 +199,11 @@ std::vector<Detection> InferenceEngine::decode_output(
             continue;
         }
 
-        // Convert from normalized xywh to original image xyxy.
-        const float model_w = static_cast<float>(input_shape_.width);
-        const float model_h = static_cast<float>(input_shape_.height);
-
-        float x1 = (cx - w / 2.0f) * model_w;
-        float y1 = (cy - h / 2.0f) * model_h;
-        float x2 = (cx + w / 2.0f) * model_w;
-        float y2 = (cy + h / 2.0f) * model_h;
+        // YOLOv8 ONNX output uses pixel coordinates in the 640x640 letterbox frame.
+        float x1 = cx - w / 2.0f;
+        float y1 = cy - h / 2.0f;
+        float x2 = cx + w / 2.0f;
+        float y2 = cy + h / 2.0f;
 
         // Remove letterbox padding.
         x1 -= static_cast<float>(info.pad_left);

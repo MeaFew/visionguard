@@ -43,7 +43,16 @@ def draw_patch(image: np.ndarray, bbox: list[int]) -> None:
     """Draw a patch/scale defect."""
     x1, y1, x2, y2 = bbox
     color = (random.randint(40, 90),) * 3
-    cv2.ellipse(image, ((x1 + x2) // 2, (y1 + y2) // 2), ((x2 - x1) // 2, (y2 - y1) // 2), 0, 0, 360, color, -1)
+    cv2.ellipse(
+        image,
+        ((x1 + x2) // 2, (y1 + y2) // 2),
+        ((x2 - x1) // 2, (y2 - y1) // 2),
+        0,
+        0,
+        360,
+        color,
+        -1,
+    )
 
 
 def draw_inclusion(image: np.ndarray, bbox: list[int]) -> None:

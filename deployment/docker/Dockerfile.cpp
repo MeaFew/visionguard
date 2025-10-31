@@ -23,7 +23,6 @@ RUN wget -q https://github.com/microsoft/onnxruntime/releases/download/v1.18.0/o
 
 WORKDIR /app
 COPY cpp ./cpp
-COPY models ./models
 
 RUN cd cpp && mkdir build && cd build \
     && cmake .. -DCMAKE_PREFIX_PATH="/opt/onnxruntime/lib/cmake/onnxruntime" \

@@ -28,29 +28,56 @@ make install-dev
 make data
 
 # 3. 训练 YOLOv8
-python scripts/train_yolo.py
+python scripts/train_yolo.py --epochs 100 --batch 8 --device 0
 
-# 4. 评估模型
-python scripts/evaluate.py
+# 4. 评估模型（默认使用真实 NEU-DET 训练结果）
+python scripts/evaluate.py --split test
 
 # 5. 导出 ONNX
 python scripts/export_onnx.py
 
 # 6. Python 端到端推理 demo
-python scripts/demo_inference.py --model runs/detect/models/demo_train/weights/best.onnx --image data/processed/test/images/synthetic_0003.jpg --output reports/demo_detection.jpg
+python scripts/demo_inference.py --output reports/demo_detection.jpg
 
 # 7. 编译并运行 C++ 推理服务
 cd cpp && mkdir build && cd build
-cmake .. -DCMAKE_PREFIX_PATH="/opt/onnxruntime/lib/cmake/onnxruntime"
+cmake .. -DCMAKE_PREFIX_PATH="/opt/onnxruntime/lib/cmake/onnxruntime" -DONNXRuntime_DIR="/opt/onnxruntime/lib/cmake/onnxruntime"
 make -j$(nproc)
-./visionguard_server --model ../../models/train/weights/best.onnx
+./visionguard_server --model ../../runs/detect/models/real_train/weights/best.onnx
 ```
 
-## Demo 结果
+## 真实 NEU-DET 结果
 
-由于 NEU-DET 公开下载链接（Google Drive）存在访问配额/权限限制，本仓库的 Demo 使用 `scripts/generate_synthetic_data.py` 生成的合成数据跑通完整链路。合成数据仅用于验证 pipeline 正确性，不代表真实场景性能。
+使用 **YOLOv8n** 在真实 NEU-DET 数据集（1800 张，train/val/test = 1440/180/180）上训练 **100 epoch**，GPU 为 RTX 4060 Laptop（batch=8），测试集指标：
 
-使用 YOLOv8n 在 100 张合成样本上训练 50 epoch（CPU），测试集指标如下：
+| 指标 | 数值 |
+|---|---|
+| val mAP50 | **0.783** |
+| test mAP50 | **0.750** |
+| test mAP50-95 | **0.422** |
+
+各类别 test AP50：
+
+| 类别 | AP50 |
+|---|---|
+| patches | 0.944 |
+| scratches | 0.914 |
+| inclusion | 0.865 |
+| pitted_surface | 0.769 |
+| rolled-in_scale | 0.604 |
+| crazing | 0.406 |
+
+ONNX 推理可视化示例（真实测试图 `inclusion_14.jpg`）：
+
+![Real demo detection](assets/real_demo_detection.jpg)
+
+完整指标见 [`assets/real_evaluation_test.json`](assets/real_evaluation_test.json)。
+
+## 合成数据 Demo
+
+如果无法下载真实 NEU-DET，可使用 `scripts/generate_synthetic_data.py` 生成合成数据验证 pipeline。合成数据仅用于验证 pipeline 正确性，不代表真实场景性能。
+
+使用 YOLOv8n 在 100 张合成样本上训练 50 epoch（CPU），测试集指标：
 
 ```json
 {
@@ -60,9 +87,7 @@ make -j$(nproc)
 }
 ```
 
-ONNX 推理可视化示例（`scripts/demo_inference.py` 输出）：
-
-![Demo detection](assets/demo_detection.jpg)
+![Synthetic demo detection](assets/demo_detection.jpg)
 
 ## 测试
 
@@ -77,10 +102,13 @@ ruff format --check .
 
 ## 部署
 
-### Docker Compose
+### Docker Compose（仅推理服务）
+
+先导出 ONNX 模型，再启动 gRPC 服务：
 
 ```bash
-docker-compose up --build
+python scripts/export_onnx.py --model runs/detect/models/real_train/weights/best.pt
+docker compose up --build
 ```
 
 ### Linux 原生部署

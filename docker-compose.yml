@@ -1,18 +1,11 @@
 version: "3.8"
 
-services:
-  visionguard-train:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    image: visionguard/train:latest
-    container_name: visionguard-train
-    volumes:
-      - ./data:/app/data
-      - ./models:/app/models
-      - ./reports:/app/reports
-    command: ["python", "scripts/train_yolo.py", "--epochs", "100"]
+# Serving-only compose. Export the ONNX model first, e.g.:
+#   python scripts/export_onnx.py --model runs/detect/models/real_train/weights/best.pt
+# Then start the gRPC server:
+#   docker compose up --build
 
+services:
   visionguard-server:
     build:
       context: .
@@ -22,7 +15,5 @@ services:
     ports:
       - "50051:50051"
     volumes:
-      - ./models:/app/models:ro
-    depends_on:
-      - visionguard-train
-    command: ["--model", "/app/models/train/weights/best.onnx", "--address", "0.0.0.0:50051"]
+      - ./runs/detect/models/real_train/weights/best.onnx:/app/models/best.onnx:ro
+    command: ["--model", "/app/models/best.onnx", "--address", "0.0.0.0:50051"]
