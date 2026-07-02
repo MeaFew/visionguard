@@ -13,6 +13,38 @@ from typing import Literal
 import cv2
 import numpy as np
 
+LETTERBOX_FILL_VALUE = 114
+
+
+def letterbox_tensor(image: np.ndarray, size: int = 640) -> tuple[np.ndarray, float, int, int]:
+    """Resize an image with letterbox padding and return a normalized NCHW tensor.
+
+    Args:
+        image: Input image in BGR order (OpenCV default), shape (H, W, 3).
+        size: Target square size.
+
+    Returns:
+        A tuple of (tensor, scale, pad_left, pad_top). ``tensor`` has shape
+        (1, 3, size, size) and dtype float32, normalized to [0, 1].
+    """
+    if image.ndim != 3 or image.shape[2] != 3:
+        raise ValueError("image must be a 3-channel BGR image")
+
+    h, w = image.shape[:2]
+    scale = min(size / w, size / h)
+    new_w, new_h = int(w * scale), int(h * scale)
+    resized = cv2.resize(image, (new_w, new_h), interpolation=cv2.INTER_LINEAR)
+
+    pad_top = (size - new_h) // 2
+    pad_left = (size - new_w) // 2
+    padded = np.full((size, size, 3), LETTERBOX_FILL_VALUE, dtype=np.uint8)
+    padded[pad_top : pad_top + new_h, pad_left : pad_left + new_w] = resized
+
+    rgb = padded[:, :, ::-1].astype(np.float32) / 255.0
+    chw = np.transpose(rgb, (2, 0, 1))
+    tensor = np.expand_dims(chw, axis=0)
+    return tensor, scale, pad_left, pad_top
+
 
 @dataclass
 class Blob:

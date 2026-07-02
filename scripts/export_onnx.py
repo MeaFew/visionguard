@@ -8,7 +8,7 @@ from pathlib import Path
 from visionguard.core.detector import YOLODetector
 from visionguard.exceptions import VisionGuardError
 
-DEFAULT_MODEL = Path("runs/detect/models/real_train/weights/best.pt")
+DEFAULT_MODEL = Path("runs/detect/train/weights/best.pt")
 DEFAULT_IMGSZ = 640
 DEFAULT_OPSET = 17
 

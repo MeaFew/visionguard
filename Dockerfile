@@ -17,4 +17,4 @@ RUN pip install --no-cache-dir -r requirements-dev.txt
 COPY . .
 RUN pip install --no-cache-dir -e ".[dev]"
 
-CMD ["python", "scripts/train_yolo.py"]
+CMD ["python", "scripts/demo_inference.py", "--help"]

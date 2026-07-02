@@ -2,6 +2,7 @@
 #include "inference_engine.h"
 
 #include <iostream>
+#include <stdexcept>
 #include <string>
 #include <vector>
 
@@ -21,7 +22,7 @@ std::vector<std::string> neu_det_classes() {
 void print_usage(const char* program) {
     std::cout << "Usage: " << program << " [options]\n"
               << "Options:\n"
-              << "  --model <path>      Path to ONNX model (default: models/train/weights/best.onnx)\n"
+              << "  --model <path>      Path to ONNX model (default: runs/detect/train/weights/best.onnx)\n"
               << "  --address <addr>    gRPC listen address (default: 0.0.0.0:50051)\n"
               << "  --conf <threshold>  Confidence threshold (default: 0.25)\n"
               << "  --iou <threshold>   IoU threshold for NMS (default: 0.45)\n"
@@ -29,10 +30,20 @@ void print_usage(const char* program) {
               << "  --help              Show this message\n";
 }
 
+void print_arg_error(
+    const char* program,
+    const char* arg,
+    const char* value,
+    const char* expected) {
+    std::cerr << "Invalid value for " << arg << ": '" << value
+              << "' (expected " << expected << ")" << std::endl;
+    print_usage(program);
+}
+
 }  // namespace
 
 int main(int argc, char** argv) {
-    std::string model_path = "models/train/weights/best.onnx";
+    std::string model_path = "runs/detect/train/weights/best.onnx";
     std::string address = "0.0.0.0:50051";
     float conf_threshold = 0.25f;
     float iou_threshold = 0.45f;
@@ -45,11 +56,26 @@ int main(int argc, char** argv) {
         } else if (arg == "--address" && i + 1 < argc) {
             address = argv[++i];
         } else if (arg == "--conf" && i + 1 < argc) {
-            conf_threshold = std::stof(argv[++i]);
+            try {
+                conf_threshold = std::stof(argv[++i]);
+            } catch (const std::exception&) {
+                print_arg_error(argv[0], "--conf", argv[i], "a float");
+                return 1;
+            }
         } else if (arg == "--iou" && i + 1 < argc) {
-            iou_threshold = std::stof(argv[++i]);
+            try {
+                iou_threshold = std::stof(argv[++i]);
+            } catch (const std::exception&) {
+                print_arg_error(argv[0], "--iou", argv[i], "a float");
+                return 1;
+            }
         } else if (arg == "--threads" && i + 1 < argc) {
-            num_threads = std::stoi(argv[++i]);
+            try {
+                num_threads = std::stoi(argv[++i]);
+            } catch (const std::exception&) {
+                print_arg_error(argv[0], "--threads", argv[i], "an integer");
+                return 1;
+            }
         } else if (arg == "--help") {
             print_usage(argv[0]);
             return 0;

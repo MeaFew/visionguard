@@ -13,7 +13,7 @@ DEFAULT_MODEL = "yolov8n.pt"
 DEFAULT_EPOCHS = 100
 DEFAULT_IMGSZ = 640
 DEFAULT_BATCH = 16
-DEFAULT_PROJECT = "models"
+DEFAULT_PROJECT = "runs/detect"
 DEFAULT_NAME = "train"
 
 
@@ -72,7 +72,43 @@ def main() -> None:
         action="store_true",
         help="Overwrite existing experiment directory",
     )
+    parser.add_argument(
+        "--augment",
+        action="store_true",
+        help="Use augmented hyperparameters for real NEU-DET training",
+    )
+    parser.add_argument(
+        "--cache",
+        type=str,
+        default="disk",
+        choices=["none", "ram", "disk"],
+        help="Dataset cache strategy",
+    )
+    parser.add_argument(
+        "--workers",
+        type=int,
+        default=8,
+        help="Number of dataloader workers",
+    )
     args = parser.parse_args()
+
+    cache = None if args.cache == "none" else args.cache
+
+    train_kwargs = {
+        "exist_ok": args.exist_ok,
+        "cache": cache,
+        "workers": args.workers,
+    }
+    if args.augment:
+        train_kwargs.update(
+            {
+                "mixup": 0.1,
+                "copy_paste": 0.1,
+                "degrees": 5.0,
+                "translate": 0.1,
+                "scale": 0.5,
+            }
+        )
 
     detector = YOLODetector(device=args.device)
     try:
@@ -84,7 +120,7 @@ def main() -> None:
             batch=args.batch,
             project=args.project,
             name=args.name,
-            exist_ok=args.exist_ok,
+            **train_kwargs,
         )
         print(f"Training complete. Best model: {best_path}")
     except VisionGuardError as exc:

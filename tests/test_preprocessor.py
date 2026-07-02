@@ -3,7 +3,7 @@
 import numpy as np
 import pytest
 
-from visionguard.core.preprocessor import Preprocessor
+from visionguard.core.preprocessor import Preprocessor, letterbox_tensor
 
 
 @pytest.fixture
@@ -151,3 +151,19 @@ def test_frequency_filter_invalid_cutoff(sample_image: np.ndarray) -> None:
         proc.frequency_filter(sample_image, cutoff=0)
     with pytest.raises(ValueError):
         proc.frequency_filter(sample_image, cutoff=200)
+
+
+def test_letterbox_tensor() -> None:
+    image = np.random.randint(0, 255, (480, 640, 3), dtype=np.uint8)
+    tensor, scale, pad_left, pad_top = letterbox_tensor(image, size=640)
+
+    assert tensor.shape == (1, 3, 640, 640)
+    assert tensor.dtype == np.float32
+    assert 0 < scale <= 1.0
+    assert pad_left >= 0
+    assert pad_top >= 0
+
+
+def test_letterbox_tensor_invalid_image() -> None:
+    with pytest.raises(ValueError):
+        letterbox_tensor(np.zeros((100, 100), dtype=np.uint8), size=640)

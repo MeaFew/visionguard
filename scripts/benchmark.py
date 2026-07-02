@@ -5,26 +5,12 @@ from __future__ import annotations
 import argparse
 import time
 
-import cv2
 import numpy as np
 import onnxruntime as ort
 
+from visionguard.core.preprocessor import letterbox_tensor
 
-def preprocess(image: np.ndarray, size: int = 640) -> np.ndarray:
-    """Resize with letterbox and normalize."""
-    h, w = image.shape[:2]
-    scale = min(size / w, size / h)
-    new_w, new_h = int(w * scale), int(h * scale)
-    resized = cv2.resize(image, (new_w, new_h), interpolation=cv2.INTER_LINEAR)
-
-    pad_top = (size - new_h) // 2
-    pad_left = (size - new_w) // 2
-    padded = np.full((size, size, 3), 114, dtype=np.uint8)
-    padded[pad_top : pad_top + new_h, pad_left : pad_left + new_w] = resized
-
-    rgb = padded[:, :, ::-1].astype(np.float32) / 255.0
-    chw = np.transpose(rgb, (2, 0, 1))
-    return np.expand_dims(chw, axis=0)
+DEFAULT_MODEL = "runs/detect/train/weights/best.onnx"
 
 
 def benchmark(model_path: str, iterations: int, size: int) -> dict[str, float]:
@@ -32,7 +18,7 @@ def benchmark(model_path: str, iterations: int, size: int) -> dict[str, float]:
     input_name = session.get_inputs()[0].name
 
     dummy = np.random.randint(0, 255, (size, size, 3), dtype=np.uint8)
-    input_tensor = preprocess(dummy, size)
+    input_tensor, _scale, _pad_left, _pad_top = letterbox_tensor(dummy, size)
 
     # Warmup
     for _ in range(10):
@@ -53,7 +39,7 @@ def benchmark(model_path: str, iterations: int, size: int) -> dict[str, float]:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Benchmark ONNX inference")
-    parser.add_argument("--model", type=str, default="models/train/weights/best.onnx")
+    parser.add_argument("--model", type=str, default=DEFAULT_MODEL)
     parser.add_argument("--iterations", type=int, default=100)
     parser.add_argument("--imgsz", type=int, default=640)
     args = parser.parse_args()

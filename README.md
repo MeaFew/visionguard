@@ -43,7 +43,7 @@ python scripts/demo_inference.py --output reports/demo_detection.jpg
 cd cpp && mkdir build && cd build
 cmake .. -DCMAKE_PREFIX_PATH="/opt/onnxruntime/lib/cmake/onnxruntime" -DONNXRuntime_DIR="/opt/onnxruntime/lib/cmake/onnxruntime"
 make -j$(nproc)
-./visionguard_server --model ../../runs/detect/models/real_train/weights/best.onnx
+./visionguard_server --model ../../runs/detect/train/weights/best.onnx
 ```
 
 ## 真实 NEU-DET 结果
@@ -107,7 +107,7 @@ ruff format --check .
 先导出 ONNX 模型，再启动 gRPC 服务：
 
 ```bash
-python scripts/export_onnx.py --model runs/detect/models/real_train/weights/best.pt
+python scripts/export_onnx.py --model runs/detect/train/weights/best.pt
 docker compose up --build
 ```
 

@@ -6,30 +6,14 @@ import argparse
 from pathlib import Path
 
 import cv2
-import numpy as np
 import onnxruntime as ort
 
 from visionguard.core.postprocessor import decode_yolov8_output
+from visionguard.core.preprocessor import letterbox_tensor
 from visionguard.utils.dataset_utils import NEU_DET_CLASSES
 from visionguard.utils.visualization import save_detection_image
 
-
-def preprocess(image: np.ndarray, size: int = 640) -> tuple[np.ndarray, float, int, int]:
-    """Resize with letterbox and normalize; return CHW tensor plus padding info."""
-    h, w = image.shape[:2]
-    scale = min(size / w, size / h)
-    new_w, new_h = int(w * scale), int(h * scale)
-    resized = cv2.resize(image, (new_w, new_h), interpolation=cv2.INTER_LINEAR)
-
-    pad_top = (size - new_h) // 2
-    pad_left = (size - new_w) // 2
-    padded = np.full((size, size, 3), 114, dtype=np.uint8)
-    padded[pad_top : pad_top + new_h, pad_left : pad_left + new_w] = resized
-
-    rgb = padded[:, :, ::-1].astype(np.float32) / 255.0
-    chw = np.transpose(rgb, (2, 0, 1))
-    tensor = np.expand_dims(chw, axis=0)
-    return tensor, scale, pad_left, pad_top
+DEFAULT_MODEL = "runs/detect/train/weights/best.onnx"
 
 
 def main() -> None:
@@ -37,7 +21,7 @@ def main() -> None:
     parser.add_argument(
         "--model",
         type=str,
-        default="runs/detect/models/real_train/weights/best.onnx",
+        default=DEFAULT_MODEL,
         help="Path to ONNX model",
     )
     parser.add_argument(
@@ -73,7 +57,7 @@ def main() -> None:
     if image is None:
         raise FileNotFoundError(f"Could not load image: {args.image}")
 
-    input_tensor, scale, pad_left, pad_top = preprocess(image)
+    input_tensor, scale, pad_left, pad_top = letterbox_tensor(image)
     outputs = session.run(None, {input_name: input_tensor})
     output = outputs[0]
 

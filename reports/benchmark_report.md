@@ -1,6 +1,6 @@
 # VisionGuard Benchmark Report
 
-> Template — fill in after running benchmarks on target hardware.
+Benchmark results for YOLOv8n trained on NEU-DET and exported to ONNX.
 
 ## Environment
 
@@ -19,8 +19,8 @@
 
 | Metric | Value |
 |---|---|
-| mAP@50 | TBD |
-| mAP@50:95 | TBD |
+| mAP@50 | 0.750 |
+| mAP@50:95 | 0.422 |
 | Precision | TBD |
 | Recall | TBD |
 | Inference latency (single image) | TBD ms |
@@ -31,15 +31,12 @@
 
 ```bash
 # Python evaluation
-python scripts/evaluate.py --model models/train/weights/best.pt
+python scripts/evaluate.py --model runs/detect/train/weights/best.pt
 
-# C++ benchmark via gRPC
-python scripts/benchmark_client.py --iterations 100
-
-# Python benchmark
-python scripts/benchmark.py --model models/train/weights/best.onnx --iterations 100
+# Python/ONNX benchmark
+python scripts/benchmark.py --model runs/detect/train/weights/best.onnx --iterations 100
 ```
 
 ## Observations
 
-- TBD
+- Update this section with numbers measured on your target hardware.

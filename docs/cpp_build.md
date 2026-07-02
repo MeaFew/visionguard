@@ -38,10 +38,10 @@ make -j$(nproc)
 
 ```bash
 # 默认监听 0.0.0.0:50051
-./visionguard_server --model ../../models/train/weights/best.onnx
+./visionguard_server --model ../../runs/detect/train/weights/best.onnx
 
 # 指定地址
-./visionguard_server --model ../../models/train/weights/best.onnx --address 0.0.0.0:50052
+./visionguard_server --model ../../runs/detect/train/weights/best.onnx --address 0.0.0.0:50052
 ```
 
 ## 测试 gRPC
