@@ -48,10 +48,31 @@ def main() -> None:
         default=0.45,
         help="NMS IoU threshold",
     )
+    parser.add_argument(
+        "--providers",
+        type=str,
+        default=None,
+        help=(
+            "Comma-separated ONNX Runtime providers, e.g. "
+            "'CUDAExecutionProvider,CPUExecutionProvider'. Default: auto "
+            "(use GPU if available, else CPU)."
+        ),
+    )
     args = parser.parse_args()
 
-    session = ort.InferenceSession(args.model, providers=["CPUExecutionProvider"])
+    # Resolve execution providers: honor --providers, otherwise let ONNX Runtime
+    # pick (GPU when available). Hardcoding CPU previously wasted a usable GPU.
+    providers = args.providers.split(",") if args.providers else None
+    try:
+        session = ort.InferenceSession(args.model, providers=providers)
+    except Exception as exc:  # noqa: BLE001
+        raise SystemExit(
+            f"Failed to load ONNX model '{args.model}': {exc}. "
+            "Export it first with `python scripts/export_onnx.py`."
+        ) from exc
     input_name = session.get_inputs()[0].name
+    active = session.get_providers()
+    print(f"ONNX Runtime providers in use: {active}")
 
     image = cv2.imread(args.image)
     if image is None:

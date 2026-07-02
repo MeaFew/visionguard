@@ -1,5 +1,3 @@
-version: "3.8"
-
 # Serving-only compose. Export the ONNX model first, e.g.:
 #   python scripts/export_onnx.py --model runs/detect/train/weights/best.pt
 # Then start the gRPC server:

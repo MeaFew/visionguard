@@ -3,7 +3,12 @@
 import numpy as np
 import pytest
 
-from visionguard.core.preprocessor import Preprocessor, letterbox_tensor
+# preprocessor.py imports cv2 at module top level, so the whole test module
+# depends on cv2 being installed. Skip the entire file cleanly when it is not,
+# rather than failing at import (which would error every test in this file).
+cv2 = pytest.importorskip("cv2")
+
+from visionguard.core.preprocessor import Preprocessor, letterbox_tensor  # noqa: E402
 
 
 @pytest.fixture
@@ -103,7 +108,6 @@ def test_morphology_invalid_kernel(sample_image: np.ndarray, kernel_size: int) -
 
 def test_blob_analysis() -> None:
     binary = np.zeros((50, 50), dtype=np.uint8)
-    cv2 = pytest.importorskip("cv2")
     cv2.rectangle(binary, (10, 10), (20, 20), 255, -1)
 
     proc = Preprocessor()

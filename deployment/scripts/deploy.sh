@@ -13,9 +13,24 @@ if ! id -u visionguard >/dev/null 2>&1; then
     sudo useradd --system --no-create-home --group nogroup visionguard
 fi
 
-# Install directory
+# Install directory — copy project files EXCLUDING build artifacts, VCS, and
+# large/local-only data so the deployment is lean and free of host-local state.
+# (A plain `cp -r .` previously copied .git, data/, __pycache__, .venv, etc.)
 sudo mkdir -p "${INSTALL_DIR}"
-sudo cp -r . "${INSTALL_DIR}/"
+tar --owner=0 --group=0 \
+    --exclude='.git' \
+    --exclude='.venv' \
+    --exclude='venv' \
+    --exclude='__pycache__' \
+    --exclude='*.pyc' \
+    --exclude='.pytest_cache' \
+    --exclude='.ruff_cache' \
+    --exclude='data/raw' \
+    --exclude='data/processed' \
+    --exclude='runs' \
+    --exclude='.cache' \
+    --exclude='*.egg-info' \
+    -cf - . | sudo tar -xf - -C "${INSTALL_DIR}"
 sudo chown -R visionguard:nogroup "${INSTALL_DIR}"
 
 # Build C++ service
