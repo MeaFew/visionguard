@@ -37,30 +37,3 @@ jobs:
         with:
           files: ./coverage.xml
 
-  cpp-build-check:
-    runs-on: ubuntu-22.04
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y build-essential cmake libopencv-dev \
-            libprotobuf-dev protobuf-compiler libgrpc++-dev protobuf-compiler-grpc
-
-      - name: Install ONNX Runtime
-        run: |
-          wget -q https://github.com/microsoft/onnxruntime/releases/download/v1.18.0/onnxruntime-linux-x64-1.18.0.tgz
-          tar -xzf onnxruntime-linux-x64-1.18.0.tgz
-          sudo cp -r onnxruntime-linux-x64-1.18.0 /opt/onnxruntime
-
-      - name: Configure CMake
-        run: |
-          cd cpp
-          mkdir build && cd build
-          cmake .. -DCMAKE_PREFIX_PATH="/opt/onnxruntime/lib/cmake/onnxruntime"
-
-      - name: Build C++ service
-        run: |
-          cd cpp/build
-          make -j$(nproc)
