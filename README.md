@@ -1,8 +1,56 @@
+<div align="center">
+
 # VisionGuard
 
-工业表面缺陷智能检测系统（Industrial Surface Defect Detection System）。
+**工业表面缺陷检测**
 
-基于 **YOLOv8** 进行钢材表面缺陷目标检测，使用 **OpenCV** 实现传统图像预处理，并通过 **ONNX Runtime + C++17** 构建高性能推理服务，最终交付 **Docker / systemd / shell 脚本** 化的 Linux 部署方案。
+*YOLOv8 · ONNX · C++ gRPC · NEU-DET*
+
+<img src="https://img.shields.io/badge/python-3.11+-blue?logo=python&logoColor=white" alt="Python">
+<img src="https://img.shields.io/badge/PyTorch-Ultralytics-ee4c2c?logo=pytorch&logoColor=white" alt="PyTorch / Ultralytics">
+<img src="https://img.shields.io/badge/ONNX-Runtime-005CED?logo=onnx&logoColor=white" alt="ONNX">
+<img src="https://img.shields.io/badge/Ruff-checked-261230?logo=ruff&logoColor=white" alt="Ruff">
+<img src="https://img.shields.io/badge/Tests-pytest-0a9ed4?logo=pytest&logoColor=white" alt="Tests">
+<a href="https://github.com/MeaFew/visionguard/actions"><img src="https://img.shields.io/badge/CI-passing-brightgreen?logo=githubactions&logoColor=white" alt="CI"></a>
+<img src="https://img.shields.io/badge/license-MIT-green" alt="MIT">
+
+</div>
+
+---
+
+## 核心结论
+
+> **YOLOv8n 在真实 NEU-DET 测试集上：mAP50 = 0.750、mAP50-95 = 0.422**（1800 张，train/val/test = 1440/180/180，100 epoch）。
+> 端到端全栈链路——**Python 训练 + C++ gRPC 部署**，从模型到生产推理服务一条龙交付。
+
+本项目以 YOLOv8 完成钢材表面 6 类缺陷目标检测，训练结果经 ONNX 导出后由 **C++17 + ONNX Runtime** 构建高性能推理服务，最终交付 Docker / systemd / shell 脚本化的 Linux 部署方案。
+
+### 总体指标（test 集）
+
+| 指标 | 数值 |
+|---|---|
+| val mAP50 | 0.783 |
+| **test mAP50** | **0.750** |
+| **test mAP50-95** | **0.422** |
+
+### 各类别 test AP50
+
+| 类别 | 中文 | AP50 |
+|---|---|---|
+| patches | 斑块 | **0.944** |
+| scratches | 划痕 | **0.914** |
+| inclusion | 夹杂 | 0.865 |
+| pitted_surface | 麻点 | 0.769 |
+| rolled-in_scale | 氧化铁皮压入 | 0.604 |
+| crazing | 裂纹 | 0.406 |
+
+> 完整指标见 [`reports/real_evaluation_test.json`](reports/real_evaluation_test.json)。
+
+<p align="center">
+  <img src="assets/real_demo_detection.jpg" alt="ONNX 推理可视化（真实测试图 inclusion_14.jpg）">
+</p>
+
+---
 
 ## 项目时间线
 
@@ -45,49 +93,6 @@ cmake .. -DCMAKE_PREFIX_PATH="/opt/onnxruntime/lib/cmake/onnxruntime" -DONNXRunt
 make -j$(nproc)
 ./visionguard_server --model ../../runs/detect/train/weights/best.onnx
 ```
-
-## 真实 NEU-DET 结果
-
-使用 **YOLOv8n** 在真实 NEU-DET 数据集（1800 张，train/val/test = 1440/180/180）上训练 **100 epoch**，GPU 为 RTX 4060 Laptop（batch=8），测试集指标：
-
-| 指标 | 数值 |
-|---|---|
-| val mAP50 | **0.783** |
-| test mAP50 | **0.750** |
-| test mAP50-95 | **0.422** |
-
-各类别 test AP50：
-
-| 类别 | AP50 |
-|---|---|
-| patches | 0.944 |
-| scratches | 0.914 |
-| inclusion | 0.865 |
-| pitted_surface | 0.769 |
-| rolled-in_scale | 0.604 |
-| crazing | 0.406 |
-
-ONNX 推理可视化示例（真实测试图 `inclusion_14.jpg`）：
-
-![Real demo detection](assets/real_demo_detection.jpg)
-
-完整指标见 [`assets/real_evaluation_test.json`](assets/real_evaluation_test.json)。
-
-## 合成数据 Demo
-
-如果无法下载真实 NEU-DET，可使用 `scripts/generate_synthetic_data.py` 生成合成数据验证 pipeline。合成数据仅用于验证 pipeline 正确性，不代表真实场景性能。
-
-使用 YOLOv8n 在 100 张合成样本上训练 50 epoch（CPU），测试集指标：
-
-```json
-{
-  "map50": 0.679,
-  "map75": 0.542,
-  "map": 0.487
-}
-```
-
-![Synthetic demo detection](assets/demo_detection.jpg)
 
 ## 测试
 
@@ -144,6 +149,25 @@ visionguard/
 ├── tests/          # Python 测试
 └── visionguard/    # Python 包
 ```
+
+<details>
+<summary><b>🧪 合成数据 Demo（无 NEU-DET 时验证 pipeline）</b></summary>
+
+如果无法下载真实 NEU-DET，可使用 `scripts/generate_synthetic_data.py` 生成合成数据验证 pipeline。合成数据仅用于验证 pipeline 正确性，**不代表真实场景性能**。
+
+使用 YOLOv8n 在 100 张合成样本上训练 50 epoch（CPU），测试集指标：
+
+```json
+{
+  "map50": 0.679,
+  "map75": 0.542,
+  "map": 0.487
+}
+```
+
+![Synthetic demo detection](assets/demo_detection.jpg)
+
+</details>
 
 ## 许可证
 
