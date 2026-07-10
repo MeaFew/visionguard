@@ -29,11 +29,23 @@ jobs:
       - name: Format check with ruff
         run: ruff format --check .
 
-      - name: Run pytest
-        run: pytest tests/ -v --cov=visionguard --cov-report=xml
+      - name: Run pytest with coverage gate
+        run: pytest tests/ -v --cov=visionguard --cov-report=xml --cov-fail-under=25
 
       - name: Upload coverage
         uses: codecov/codecov-action@v4
         with:
           files: ./coverage.xml
+
+  typecheck:
+    # Gradual typing: mypy reports but does not block CI yet.
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install mypy
+      - run: mypy visionguard || true
 

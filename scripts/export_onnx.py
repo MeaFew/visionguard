@@ -7,6 +7,9 @@ from pathlib import Path
 
 from visionguard.core.detector import YOLODetector
 from visionguard.exceptions import VisionGuardError
+from visionguard.logging_setup import get_logger, setup_logging
+
+logger = get_logger(__name__)
 
 DEFAULT_MODEL = Path("runs/detect/train/weights/best.pt")
 DEFAULT_IMGSZ = 640
@@ -51,11 +54,12 @@ def main() -> None:
             dynamic=dynamic,
             opset=args.opset,
         )
-        print(f"ONNX model exported to {onnx_path}")
+        logger.info(f"ONNX model exported to {onnx_path}")
     except VisionGuardError as exc:
-        print(f"Error: {exc}")
+        logger.error(f"Error: {exc}")
         raise SystemExit(1) from exc
 
 
 if __name__ == "__main__":
+    setup_logging()
     main()

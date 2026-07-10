@@ -8,6 +8,9 @@ from pathlib import Path
 
 from visionguard.core.detector import YOLODetector
 from visionguard.exceptions import VisionGuardError
+from visionguard.logging_setup import get_logger, setup_logging
+
+logger = get_logger(__name__)
 
 DEFAULT_CONFIG = Path("configs/yolov8_neu_det.yaml")
 DEFAULT_MODEL = Path("runs/detect/train/weights/best.pt")
@@ -59,12 +62,13 @@ def main() -> None:
         with open(output_path, "w", encoding="utf-8") as f:
             json.dump(metrics, f, indent=2)
 
-        print(f"Evaluation metrics: {metrics}")
-        print(f"Metrics saved to {output_path}")
+        logger.info(f"Evaluation metrics: {metrics}")
+        logger.info(f"Metrics saved to {output_path}")
     except VisionGuardError as exc:
-        print(f"Error: {exc}")
+        logger.error(f"Error: {exc}")
         raise SystemExit(1) from exc
 
 
 if __name__ == "__main__":
+    setup_logging()
     main()

@@ -9,12 +9,15 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 
 from visionguard.exceptions import AnnotationError, DatasetError, VisionGuardError
+from visionguard.logging_setup import get_logger, setup_logging
 from visionguard.utils.dataset_utils import (
     CLASS_TO_ID,
     NEU_DET_CLASSES,
     ensure_dir,
     split_dataset,
 )
+
+logger = get_logger(__name__)
 
 DEFAULT_DATA_DIR = Path("data")
 
@@ -212,10 +215,10 @@ def convert_neu_det(
         f.write(f"nc: {len(NEU_DET_CLASSES)}\n")
         f.write(f"names: {NEU_DET_CLASSES}\n")
 
-    print(f"Processed dataset saved to {processed_dir}")
-    print(f"  Train: {len(train_pairs)} images")
-    print(f"  Val:   {len(val_pairs)} images")
-    print(f"  Test:  {len(test_pairs)} images")
+    logger.info(f"Processed dataset saved to {processed_dir}")
+    logger.info(f"  Train: {len(train_pairs)} images")
+    logger.info(f"  Val:   {len(val_pairs)} images")
+    logger.info(f"  Test:  {len(test_pairs)} images")
 
     return processed_dir
 
@@ -250,9 +253,10 @@ def main() -> None:
     try:
         convert_neu_det(args.data_dir, args.train_ratio, args.val_ratio, args.seed)
     except VisionGuardError as exc:
-        print(f"Error: {exc}", file=sys.stderr)
+        logger.error(f"Error: {exc}")
         sys.exit(1)
 
 
 if __name__ == "__main__":
+    setup_logging()
     main()

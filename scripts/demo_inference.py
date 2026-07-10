@@ -10,8 +10,11 @@ import onnxruntime as ort
 
 from visionguard.core.postprocessor import decode_yolov8_output
 from visionguard.core.preprocessor import letterbox_tensor
+from visionguard.logging_setup import get_logger, setup_logging
 from visionguard.utils.dataset_utils import NEU_DET_CLASSES
 from visionguard.utils.visualization import save_detection_image
+
+logger = get_logger(__name__)
 
 DEFAULT_MODEL = "runs/detect/train/weights/best.onnx"
 
@@ -72,7 +75,7 @@ def main() -> None:
         ) from exc
     input_name = session.get_inputs()[0].name
     active = session.get_providers()
-    print(f"ONNX Runtime providers in use: {active}")
+    logger.info(f"ONNX Runtime providers in use: {active}")
 
     image = cv2.imread(args.image)
     if image is None:
@@ -95,17 +98,18 @@ def main() -> None:
         pad_top=pad_top,
     )
 
-    print(f"Found {len(detections)} detections:")
+    logger.info(f"Found {len(detections)} detections:")
     for det in detections:
-        print(
+        logger.info(
             f"  {det.class_name}: {det.confidence:.2f} at ({det.x1:.1f}, {det.y1:.1f}) - ({det.x2:.1f}, {det.y2:.1f})"
         )
 
     output_path = Path(args.output)
     output_path.parent.mkdir(parents=True, exist_ok=True)
     save_detection_image(args.image, detections, output_path)
-    print(f"Visualization saved to {output_path}")
+    logger.info(f"Visualization saved to {output_path}")
 
 
 if __name__ == "__main__":
+    setup_logging()
     main()

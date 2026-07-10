@@ -9,6 +9,9 @@ import numpy as np
 import onnxruntime as ort
 
 from visionguard.core.preprocessor import letterbox_tensor
+from visionguard.logging_setup import get_logger, setup_logging
+
+logger = get_logger(__name__)
 
 DEFAULT_MODEL = "runs/detect/train/weights/best.onnx"
 
@@ -62,8 +65,9 @@ def main() -> None:
 
     providers = args.providers.split(",") if args.providers else None
     results = benchmark(args.model, args.iterations, args.imgsz, providers=providers)
-    print(results)
+    logger.info(results)
 
 
 if __name__ == "__main__":
+    setup_logging()
     main()

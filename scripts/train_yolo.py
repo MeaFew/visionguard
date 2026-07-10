@@ -7,6 +7,9 @@ from pathlib import Path
 
 from visionguard.core.detector import YOLODetector
 from visionguard.exceptions import VisionGuardError
+from visionguard.logging_setup import get_logger, setup_logging
+
+logger = get_logger(__name__)
 
 DEFAULT_CONFIG = Path("configs/yolov8_neu_det.yaml")
 DEFAULT_MODEL = "yolov8n.pt"
@@ -122,11 +125,12 @@ def main() -> None:
             name=args.name,
             **train_kwargs,
         )
-        print(f"Training complete. Best model: {best_path}")
+        logger.info(f"Training complete. Best model: {best_path}")
     except VisionGuardError as exc:
-        print(f"Error: {exc}")
+        logger.error(f"Error: {exc}")
         raise SystemExit(1) from exc
 
 
 if __name__ == "__main__":
+    setup_logging()
     main()

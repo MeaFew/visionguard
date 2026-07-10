@@ -8,6 +8,8 @@ from __future__ import annotations
 
 import sys
 
+from visionguard.logging_setup import setup_logging
+
 
 def main(argv: list[str] | None = None) -> int:
     """Run ``train_yolo.py`` with the ``--augment`` flag enabled."""
@@ -29,4 +31,5 @@ def main(argv: list[str] | None = None) -> int:
 
 
 if __name__ == "__main__":
+    setup_logging()
     raise SystemExit(main())

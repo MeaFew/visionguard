@@ -11,7 +11,10 @@ from pathlib import Path
 
 import gdown
 
+from visionguard.logging_setup import get_logger, setup_logging
 from visionguard.utils.dataset_utils import ensure_dir
+
+logger = get_logger(__name__)
 
 GOOGLE_DRIVE_FILE_ID = "1qE2x0L3CdE2qHQWRwCN7DCq9RllqT-kb"
 GOOGLE_DRIVE_URL = (
@@ -40,7 +43,7 @@ def extract_archive(archive_path: Path, dst_dir: Path) -> None:
             for member in zf.infolist():
                 target = (dst_dir / member.filename).resolve()
                 if not _is_safe(target):
-                    print(f"Skipping unsafe archive member: {member.filename}")
+                    logger.info(f"Skipping unsafe archive member: {member.filename}")
                     continue
                 zf.extract(member, dst_dir)
     elif archive_path.suffixes == [".tar", ".gz"]:
@@ -48,7 +51,7 @@ def extract_archive(archive_path: Path, dst_dir: Path) -> None:
             for member in tf.getmembers():
                 target = (dst_dir / member.name).resolve()
                 if not _is_safe(target):
-                    print(f"Skipping unsafe archive member: {member.name}")
+                    logger.info(f"Skipping unsafe archive member: {member.name}")
                     continue
                 tf.extract(member, dst_dir)
     else:
@@ -70,7 +73,7 @@ def _find_archive(raw_dir: Path) -> Path | None:
 
 def _download_from_google_drive(archive_path: Path) -> None:
     """Download NEU-DET archive from the official Google Drive mirror."""
-    print("Downloading NEU-DET from Google Drive ...")
+    logger.info("Downloading NEU-DET from Google Drive ...")
     try:
         gdown.download(
             id=GOOGLE_DRIVE_FILE_ID,
@@ -78,8 +81,8 @@ def _download_from_google_drive(archive_path: Path) -> None:
             quiet=False,
         )
     except Exception as exc:  # pragma: no cover
-        print(f"Google Drive download failed: {exc}")
-        print(
+        logger.info(f"Google Drive download failed: {exc}")
+        logger.info(
             "Please manually download NEU-DET from "
             f"{GOOGLE_DRIVE_URL} and place it at {archive_path}"
         )
@@ -91,7 +94,7 @@ def _download_from_kaggle(raw_dir: Path, dataset: str) -> Path:
 
     Returns the path to the downloaded archive.
     """
-    print(f"Downloading NEU-DET from Kaggle dataset {dataset} ...")
+    logger.info(f"Downloading NEU-DET from Kaggle dataset {dataset} ...")
     try:
         subprocess.run(
             [
@@ -109,10 +112,10 @@ def _download_from_kaggle(raw_dir: Path, dataset: str) -> Path:
             check=True,
         )
     except subprocess.CalledProcessError as exc:
-        print("Kaggle download failed. Common causes:")
-        print("  1. API token not configured (~/.kaggle/kaggle.json).")
-        print("  2. Not accepted the dataset's terms on kaggle.com.")
-        print("  3. Network / VPN cannot reach Kaggle.")
+        logger.info("Kaggle download failed. Common causes:")
+        logger.info("  1. API token not configured (~/.kaggle/kaggle.json).")
+        logger.info("  2. Not accepted the dataset's terms on kaggle.com.")
+        logger.info("  3. Network / VPN cannot reach Kaggle.")
         raise RuntimeError(
             "Kaggle download failed. See docs/dataset.md for setup instructions."
         ) from exc
@@ -150,7 +153,7 @@ def download_neu_det(
     if source == "google-drive":
         archive_path = raw_dir / "NEU-DET.zip"
         if archive_path.exists() and not force:
-            print(f"Archive already exists: {archive_path}")
+            logger.info(f"Archive already exists: {archive_path}")
         else:
             _download_from_google_drive(archive_path)
     elif source == "kaggle":
@@ -159,17 +162,17 @@ def download_neu_det(
         if archive_path is None or force:
             archive_path = _download_from_kaggle(raw_dir, kaggle_dataset)
         else:
-            print(f"Reusing existing archive: {archive_path}")
+            logger.info(f"Reusing existing archive: {archive_path}")
     else:
         raise ValueError(f"Unknown download source: {source}")
 
     if not extracted_marker.exists():
-        print(f"Extracting {archive_path} ...")
+        logger.info(f"Extracting {archive_path} ...")
         extract_archive(archive_path, raw_dir)
         extracted_marker.touch()
-        print("Extraction complete.")
+        logger.info("Extraction complete.")
     else:
-        print("Dataset already extracted.")
+        logger.info("Dataset already extracted.")
 
     return raw_dir
 
@@ -210,4 +213,5 @@ def main() -> None:
 
 
 if __name__ == "__main__":
+    setup_logging()
     main()

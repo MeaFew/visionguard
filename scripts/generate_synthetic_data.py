@@ -16,7 +16,10 @@ from pathlib import Path
 import cv2
 import numpy as np
 
+from visionguard.logging_setup import get_logger, setup_logging
 from visionguard.utils.dataset_utils import NEU_DET_CLASSES, ensure_dir
+
+logger = get_logger(__name__)
 
 DEFAULT_DATA_DIR = Path("data")
 DEFAULT_NUM_IMAGES = 100
@@ -169,7 +172,7 @@ def generate_synthetic_dataset(
     for i in range(num_images):
         generate_image(i, image_size, data_dir)
 
-    print(f"Generated {num_images} synthetic images in {data_dir / 'raw' / 'synthetic'}")
+    logger.info(f"Generated {num_images} synthetic images in {data_dir / 'raw' / 'synthetic'}")
 
 
 def main() -> None:
@@ -203,4 +206,5 @@ def main() -> None:
 
 
 if __name__ == "__main__":
+    setup_logging()
     main()

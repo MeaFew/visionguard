@@ -2,11 +2,16 @@
 
 from __future__ import annotations
 
+import logging
 import subprocess
 import sys
 from pathlib import Path
 
 import requests
+
+from visionguard.logging_setup import setup_logging
+
+logger = logging.getLogger(__name__)
 
 WHEELS = [
     (
@@ -36,10 +41,10 @@ def download(url: str, dst: Path) -> None:
         head = requests.head(url, timeout=30)
         remote_size = int(head.headers.get("content-length", 0))
         if local_size == remote_size and remote_size > 0:
-            print(f"Using cached {dst.name}")
+            logger.info(f"Using cached {dst.name}")
             return
 
-    print(f"Downloading {dst.name} ...")
+    logger.info(f"Downloading {dst.name} ...")
     with requests.get(url, stream=True, timeout=60) as resp:
         resp.raise_for_status()
         total = int(resp.headers.get("content-length", 0))
@@ -56,8 +61,8 @@ def download(url: str, dst: Path) -> None:
                     print(
                         f"\r{bar}  {downloaded / (1024 * 1024):.1f}/{total / (1024 * 1024):.1f} MB",
                         end="",
+                        flush=True,
                     )
-                    sys.stdout.flush()
         print()  # newline after completion
 
 
@@ -71,14 +76,14 @@ def main() -> None:
         download(url, dst)
         wheel_paths.append(dst)
 
-    print("Installing wheels ...")
+    logger.info("Installing wheels ...")
     subprocess.run(
         [sys.executable, "-m", "pip", "install", "--force-reinstall", "--no-deps"]
         + [str(p) for p in wheel_paths],
         check=True,
     )
-    print("PyTorch GPU installation complete.")
-    print("Verifying CUDA availability:")
+    logger.info("PyTorch GPU installation complete.")
+    logger.info("Verifying CUDA availability:")
     subprocess.run(
         [
             sys.executable,
@@ -89,4 +94,5 @@ def main() -> None:
 
 
 if __name__ == "__main__":
+    setup_logging()
     main()
