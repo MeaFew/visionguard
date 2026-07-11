@@ -11,7 +11,7 @@ from visionguard.logging_setup import get_logger, setup_logging
 
 logger = get_logger(__name__)
 
-DEFAULT_MODEL = Path("runs/detect/train/weights/best.pt")
+DEFAULT_MODEL = Path("runs/detect/models/real_train/weights/best.pt")
 DEFAULT_IMGSZ = 640
 DEFAULT_OPSET = 17
 

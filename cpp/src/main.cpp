@@ -22,7 +22,7 @@ std::vector<std::string> neu_det_classes() {
 void print_usage(const char* program) {
     std::cout << "Usage: " << program << " [options]\n"
               << "Options:\n"
-              << "  --model <path>      Path to ONNX model (default: runs/detect/train/weights/best.onnx)\n"
+              << "  --model <path>      Path to ONNX model (default: runs/detect/models/real_train/weights/best.onnx)\n"
               << "  --address <addr>    gRPC listen address (default: 0.0.0.0:50051)\n"
               << "  --conf <threshold>  Confidence threshold (default: 0.25)\n"
               << "  --iou <threshold>   IoU threshold for NMS (default: 0.45)\n"
@@ -43,7 +43,7 @@ void print_arg_error(
 }  // namespace
 
 int main(int argc, char** argv) {
-    std::string model_path = "runs/detect/train/weights/best.onnx";
+    std::string model_path = "runs/detect/models/real_train/weights/best.onnx";
     std::string address = "0.0.0.0:50051";
     float conf_threshold = 0.25f;
     float iou_threshold = 0.45f;

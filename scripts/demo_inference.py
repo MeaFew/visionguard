@@ -16,7 +16,7 @@ from visionguard.utils.visualization import save_detection_image
 
 logger = get_logger(__name__)
 
-DEFAULT_MODEL = "runs/detect/train/weights/best.onnx"
+DEFAULT_MODEL = "runs/detect/models/real_train/weights/best.onnx"
 
 
 def main() -> None:

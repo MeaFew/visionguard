@@ -13,7 +13,7 @@ from visionguard.logging_setup import get_logger, setup_logging
 logger = get_logger(__name__)
 
 DEFAULT_CONFIG = Path("configs/yolov8_neu_det.yaml")
-DEFAULT_MODEL = Path("runs/detect/train/weights/best.pt")
+DEFAULT_MODEL = Path("runs/detect/models/real_train/weights/best.pt")
 DEFAULT_OUTPUT = Path("reports/evaluation.json")
 
 

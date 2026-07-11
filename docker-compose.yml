@@ -1,5 +1,5 @@
 # Serving-only compose. Export the ONNX model first, e.g.:
-#   python scripts/export_onnx.py --model runs/detect/train/weights/best.pt
+#   python scripts/export_onnx.py --model runs/detect/models/real_train/weights/best.pt
 # Then start the gRPC server:
 #   docker compose up --build
 
@@ -13,5 +13,5 @@ services:
     ports:
       - "50051:50051"
     volumes:
-      - ./runs/detect/train/weights/best.onnx:/app/models/best.onnx:ro
+      - ./runs/detect/models/real_train/weights/best.onnx:/app/models/best.onnx:ro
     command: ["--model", "/app/models/best.onnx", "--address", "0.0.0.0:50051"]
