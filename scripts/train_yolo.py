@@ -16,8 +16,8 @@ DEFAULT_MODEL = "yolov8n.pt"
 DEFAULT_EPOCHS = 100
 DEFAULT_IMGSZ = 640
 DEFAULT_BATCH = 16
-DEFAULT_PROJECT = "runs/detect"
-DEFAULT_NAME = "train"
+DEFAULT_PROJECT = "runs/detect/models"
+DEFAULT_NAME = "real_train"
 
 
 def main() -> None:

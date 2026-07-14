@@ -1,5 +1,22 @@
 {
   "map50": 0.7502447574351819,
   "map75": 0.41603418273218457,
-  "map": 0.42217785041395367
+  "map": 0.42217785041395367,
+  "protocol": {
+    "dataset": "NEU-DET",
+    "total_images": 1800,
+    "train_images": 1440,
+    "val_images": 180,
+    "test_images": 180,
+    "epochs": 100,
+    "model": "YOLOv8n"
+  },
+  "per_class_ap50": {
+    "patches": 0.944,
+    "scratches": 0.914,
+    "inclusion": 0.865,
+    "pitted_surface": 0.769,
+    "rolled-in_scale": 0.604,
+    "crazing": 0.406
+  }
 }

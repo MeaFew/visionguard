@@ -11,8 +11,10 @@
 <img src="https://img.shields.io/badge/ONNX-Runtime-005CED?logo=onnx&logoColor=white" alt="ONNX">
 <img src="https://img.shields.io/badge/Ruff-checked-261230?logo=ruff&logoColor=white" alt="Ruff">
 <img src="https://img.shields.io/badge/Tests-pytest-0a9ed4?logo=pytest&logoColor=white" alt="Tests">
-<a href="https://github.com/MeaFew/visionguard/actions"><img src="https://img.shields.io/badge/CI-passing-brightgreen?logo=githubactions&logoColor=white" alt="CI"></a>
+<a href="https://github.com/MeaFew/visionguard/actions"><img src="https://github.com/MeaFew/visionguard/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
 <img src="https://img.shields.io/badge/license-MIT-green" alt="MIT">
+
+**中文** | <a href="./README.en.md">English</a>
 
 </div>
 
@@ -24,6 +26,10 @@
 > 端到端全栈链路——**Python 训练 + C++ gRPC 部署**，从模型到生产推理服务一条龙交付。
 
 本项目以 YOLOv8 完成钢材表面 6 类缺陷目标检测，训练结果经 ONNX 导出后由 **C++17 + ONNX Runtime** 构建高性能推理服务，最终交付 Docker / systemd / shell 脚本化的 Linux 部署方案。
+
+<p align="center">
+  <img src="assets/deployment_summary.svg" width="900" alt="VisionGuard 六类缺陷 AP50 与部署链路">
+</p>
 
 ### 总体指标（test 集）
 
@@ -44,15 +50,20 @@
 | rolled-in_scale | 氧化铁皮压入 | 0.604 |
 | crazing | 裂纹 | 0.406 |
 
-> 完整指标见 [`reports/real_evaluation_test.json`](reports/real_evaluation_test.json)。
+> 完整指标见 [`assets/real_evaluation_test.json`](assets/real_evaluation_test.json)。
 
 <p align="center">
   <img src="assets/real_demo_detection.jpg" alt="ONNX 推理可视化（真实测试图 inclusion_14.jpg）">
 </p>
 
+<p align="center">
+  <img src="runs/detect/models/real_train/confusion_matrix_normalized.png" width="720" alt="真实 NEU-DET 测试集归一化混淆矩阵">
+</p>
+
 ---
 
-## 项目时间线
+<details>
+<summary><b>项目时间线</b></summary>
 
 本项目于 **2025 年 8 月** 启动，在 **2025 年 8 月至 10 月** 之间迭代完善并完成。
 
@@ -66,33 +77,42 @@
 | 测试与文档 | 2025-10-01 ~ 2025-10-15 | pytest、集成测试、benchmark |
 | 收尾优化 | 2025-10-16 ~ 2025-10-31 | 性能调优、文档完善 |
 
+</details>
+
 ## 快速开始
 
 ```bash
-# 1. 安装依赖
+# 1. 创建并激活 Python 3.11 虚拟环境
+python -m venv .venv
+# Linux / macOS: source .venv/bin/activate
+# Windows PowerShell: .venv\Scripts\Activate.ps1
+
+# 2. 安装依赖与项目包
 make install-dev
 
-# 2. 下载并准备 NEU-DET 数据集
+# 3. 下载并准备 NEU-DET 数据集
 make data
 
-# 3. 训练 YOLOv8
-python scripts/train_yolo.py --epochs 100 --batch 8 --device 0
+# 4. 训练 YOLOv8（后续命令默认读取该输出目录）
+python scripts/train_yolo.py --epochs 100 --batch 8 --device 0 --project runs/detect/models --name real_train
 
-# 4. 评估模型（默认使用真实 NEU-DET 训练结果）
+# 5. 评估模型（默认使用上一步的真实 NEU-DET 训练结果）
 python scripts/evaluate.py --split test
 
-# 5. 导出 ONNX
+# 6. 导出 ONNX
 python scripts/export_onnx.py
 
-# 6. Python 端到端推理 demo
+# 7. Python 端到端推理 demo
 python scripts/demo_inference.py --output reports/demo_detection.jpg
 
-# 7. 编译并运行 C++ 推理服务
+# 8. 编译并运行 C++ 推理服务
 cd cpp && mkdir build && cd build
 cmake .. -DCMAKE_PREFIX_PATH="/opt/onnxruntime/lib/cmake/onnxruntime" -DONNXRuntime_DIR="/opt/onnxruntime/lib/cmake/onnxruntime"
 make -j$(nproc)
 ./visionguard_server --model ../../runs/detect/models/real_train/weights/best.onnx
 ```
+
+> 仓库提交评估 JSON 与展示图，但不提交 `.pt` / `.onnx` 权重。评估、导出和部署步骤依赖第 4 步生成的 `runs/detect/models/real_train/weights/best.pt`；因此全新克隆不会误把本地已有权重当成仓库自带资源。
 
 ## 测试
 

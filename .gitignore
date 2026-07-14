@@ -42,6 +42,15 @@ lightning_logs/
 mlruns/
 wandb/
 runs/
+!runs/
+runs/*
+!runs/detect/
+runs/detect/*
+!runs/detect/models/
+runs/detect/models/*
+!runs/detect/models/real_train/
+runs/detect/models/real_train/*
+!runs/detect/models/real_train/confusion_matrix_normalized.png
 .cache/
 
 # IDE

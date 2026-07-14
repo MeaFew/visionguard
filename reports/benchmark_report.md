@@ -31,10 +31,10 @@ Benchmark results for YOLOv8n trained on NEU-DET and exported to ONNX.
 
 ```bash
 # Python evaluation
-python scripts/evaluate.py --model runs/detect/train/weights/best.pt
+python scripts/evaluate.py --model runs/detect/models/real_train/weights/best.pt
 
 # Python/ONNX benchmark
-python scripts/benchmark.py --model runs/detect/train/weights/best.onnx --iterations 100
+python scripts/benchmark.py --model runs/detect/models/real_train/weights/best.onnx --iterations 100
 ```
 
 ## Observations
