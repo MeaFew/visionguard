@@ -30,7 +30,7 @@ jobs:
         run: ruff format --check .
 
       - name: Run pytest with coverage gate
-        run: pytest tests/ -v --cov=visionguard --cov-report=xml --cov-fail-under=25
+        run: pytest tests/ -v --cov=visionguard --cov-report=xml --cov-fail-under=40
 
       - name: Upload coverage
         uses: codecov/codecov-action@v4
@@ -38,7 +38,9 @@ jobs:
           files: ./coverage.xml
 
   typecheck:
-    # Gradual typing: mypy reports but does not block CI yet.
+    # Gradual typing: mypy does not block CI yet.
+    # TODO: Remove '|| true' once the 2 type errors in
+    # visionguard/core/preprocessor.py (lines 73, 232) are resolved.
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
@@ -47,5 +49,5 @@ jobs:
         with:
           python-version: "3.11"
       - run: pip install mypy
-      - run: mypy visionguard || true
+      - run: mypy visionguard || true  # non-blocking: 2 known type errors in preprocessor.py
 

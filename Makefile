@@ -49,6 +49,6 @@ data: download
 	$(PYTHON) scripts/convert_annotations.py
 
 clean:
-	rm -rf __pycache__ .pytest_cache .ruff_cache *.egg-info build dist
-	find . -type d -name __pycache__ -prune -exec rm -rf {} +
-	find . -type f -name "*.pyc" -delete
+	$(PYTHON) -c "import shutil, pathlib; [shutil.rmtree(p, ignore_errors=True) for p in [pathlib.Path('__pycache__'), pathlib.Path('.pytest_cache'), pathlib.Path('.ruff_cache'), pathlib.Path('build'), pathlib.Path('dist')] + list(pathlib.Path('.').glob('*.egg-info'))]"
+	$(PYTHON) -c "import pathlib, shutil; [shutil.rmtree(p) for p in pathlib.Path('.').rglob('__pycache__') if p.is_dir()]"
+	$(PYTHON) -c "import pathlib; [p.unlink() for p in pathlib.Path('.').rglob('*.pyc')]"
