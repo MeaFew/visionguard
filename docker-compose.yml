@@ -13,5 +13,8 @@ services:
     ports:
       - "50051:50051"
     volumes:
-      - ./runs/detect/models/real_train/weights/best.onnx:/app/models/best.onnx:ro
+      # Mount the weights directory, not the single file: with a file mount,
+      # Docker silently creates an empty host directory when best.onnx is
+      # missing, and the server then fails inside the container.
+      - ./runs/detect/models/real_train/weights:/app/models:ro
     command: ["--model", "/app/models/best.onnx", "--address", "0.0.0.0:50051"]

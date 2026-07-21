@@ -81,8 +81,8 @@ def _download_from_google_drive(archive_path: Path) -> None:
             quiet=False,
         )
     except Exception as exc:  # pragma: no cover
-        logger.info(f"Google Drive download failed: {exc}")
-        logger.info(
+        logger.error(f"Google Drive download failed: {exc}")
+        logger.error(
             "Please manually download NEU-DET from "
             f"{GOOGLE_DRIVE_URL} and place it at {archive_path}"
         )
@@ -112,10 +112,10 @@ def _download_from_kaggle(raw_dir: Path, dataset: str) -> Path:
             check=True,
         )
     except subprocess.CalledProcessError as exc:
-        logger.info("Kaggle download failed. Common causes:")
-        logger.info("  1. API token not configured (~/.kaggle/kaggle.json).")
-        logger.info("  2. Not accepted the dataset's terms on kaggle.com.")
-        logger.info("  3. Network / VPN cannot reach Kaggle.")
+        logger.error("Kaggle download failed. Common causes:")
+        logger.error("  1. API token not configured (~/.kaggle/kaggle.json).")
+        logger.error("  2. Not accepted the dataset's terms on kaggle.com.")
+        logger.error("  3. Network / VPN cannot reach Kaggle.")
         raise RuntimeError(
             "Kaggle download failed. See docs/dataset.md for setup instructions."
         ) from exc

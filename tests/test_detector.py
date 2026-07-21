@@ -9,6 +9,9 @@ from visionguard.core.detector import DetectorError, YOLODetector
 
 
 def test_detector_load_invalid() -> None:
+    # NOTE: relies on Ultralytics raising for a missing local .pt file instead
+    # of attempting a network download; may break offline if that behavior
+    # changes (e.g. Ultralytics treats unknown names as downloadable models).
     detector = YOLODetector()
     with pytest.raises(DetectorError, match="Failed to load YOLO model from nonexistent_model.pt"):
         detector.load("nonexistent_model.pt")

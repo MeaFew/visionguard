@@ -56,7 +56,9 @@ std::vector<int> nms(
             const float inter_w = std::max(0.0f, x2 - x1);
             const float inter_h = std::max(0.0f, y2 - y1);
             const float inter = inter_w * inter_h;
-            const float union_area = areas[idx] + areas[j] - inter + 1e-6f;
+            // Same guard as the Python postprocessor: clamp the union from
+            // below instead of adding epsilon, so both NMS variants match.
+            const float union_area = std::max(areas[idx] + areas[j] - inter, 1e-6f);
             const float iou = inter / union_area;
 
             if (iou > iou_threshold) {

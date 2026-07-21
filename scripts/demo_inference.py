@@ -68,7 +68,7 @@ def main() -> None:
     providers = args.providers.split(",") if args.providers else None
     try:
         session = ort.InferenceSession(args.model, providers=providers)
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         raise SystemExit(
             f"Failed to load ONNX model '{args.model}': {exc}. "
             "Export it first with `python scripts/export_onnx.py`."
@@ -90,7 +90,6 @@ def main() -> None:
         class_names=NEU_DET_CLASSES,
         conf_threshold=args.conf,
         iou_threshold=args.iou,
-        input_size=640,
         img_width=image.shape[1],
         img_height=image.shape[0],
         scale=scale,

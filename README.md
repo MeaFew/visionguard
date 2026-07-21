@@ -138,6 +138,8 @@ docker compose up --build
 
 ### Linux 原生部署
 
+`deploy.sh` 要求先导出 ONNX 模型（`python scripts/export_onnx.py`）：脚本会把 `runs/detect/models/real_train/weights/best.onnx` 显式安装到 `/opt/visionguard`（与 systemd 单元的 `ExecStart` 路径一致），缺失时会直接报错退出。
+
 ```bash
 sudo bash deployment/scripts/deploy.sh
 sudo bash deployment/scripts/health_check.sh

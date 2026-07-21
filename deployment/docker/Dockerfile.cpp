@@ -16,6 +16,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Install ONNX Runtime
+# TODO: verify the tarball against an official sha256 checksum
+# (echo "<sha256>  onnxruntime-linux-x64-1.18.0.tgz" | sha256sum -c -)
+# once a reliable one is published for v1.18.0; the GitHub release page does
+# not list checksums at the time of writing.
 RUN wget -q https://github.com/microsoft/onnxruntime/releases/download/v1.18.0/onnxruntime-linux-x64-1.18.0.tgz \
     && tar -xzf onnxruntime-linux-x64-1.18.0.tgz \
     && cp -r onnxruntime-linux-x64-1.18.0 /opt/onnxruntime \

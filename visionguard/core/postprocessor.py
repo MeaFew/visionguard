@@ -74,7 +74,6 @@ def decode_yolov8_output(
     class_names: list[str],
     conf_threshold: float = 0.25,
     iou_threshold: float = 0.45,
-    input_size: int = 640,
     img_width: int = 640,
     img_height: int = 640,
     scale: float = 1.0,
@@ -85,15 +84,14 @@ def decode_yolov8_output(
 
     The output format from Ultralytics YOLOv8 ONNX export is:
         [batch, 4 + num_classes, num_anchors]
-    where the first 4 channels are box coordinates (xywh, normalized to the
-    model input size) and the remaining channels are class logits.
+    where the first 4 channels are box coordinates (xywh, in model-input pixel
+    coordinates) and the remaining channels are class logits.
 
     Args:
         output: ONNX model output tensor.
         class_names: List of class names.
         conf_threshold: Minimum confidence score to keep a detection.
         iou_threshold: IoU threshold for NMS.
-        input_size: Model input width/height (square) used to normalize box coords.
         img_width: Original image width for final clipping.
         img_height: Original image height for final clipping.
         scale: Letterbox resize scale (original / resized).

@@ -56,8 +56,9 @@ def split_dataset(
         raise ValueError("train_ratio + val_ratio must be less than 1")
 
     data = list(image_paths)
-    random.seed(seed)
-    random.shuffle(data)
+    # Use a local RNG so the global random state is not disturbed.
+    rng = random.Random(seed)
+    rng.shuffle(data)
 
     n_total = len(data)
     n_train = int(n_total * train_ratio)
@@ -77,13 +78,3 @@ def copy_files(file_list: Sequence[Path], dst_dir: Path) -> None:
         if not src.exists():
             raise FileNotFoundError(src)
         shutil.copy2(src, dst_dir / src.name)
-
-
-def get_yolo_label_path(image_path: Path) -> Path:
-    """Return the corresponding YOLO label path for an image path.
-
-    The function expects ``image_path`` to live under an ``images/`` directory
-    and returns a sibling path under ``labels/`` with the same basename and a
-    ``.txt`` extension.
-    """
-    return image_path.parent.parent / "labels" / image_path.with_suffix(".txt").name

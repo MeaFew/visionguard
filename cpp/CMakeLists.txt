@@ -93,6 +93,9 @@ target_link_libraries(visionguard_server
 )
 
 # Tests
+# TODO: wire these Catch2 tests into CI (.github/workflows/ci.yml) once a
+# runner image with the C++ dependencies (OpenCV, ONNX Runtime, gRPC) is
+# available; currently they only run locally via BUILD_TESTS=ON.
 if(BUILD_TESTS)
     find_package(Catch2 3 QUIET)
     if(Catch2_FOUND)

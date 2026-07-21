@@ -67,6 +67,7 @@ class Preprocessor:
         self, kernel_size: tuple[int, int] | int, name: str = "kernel_size"
     ) -> None:
         """Validate that a kernel size has positive odd integer values."""
+        sizes: tuple[int, ...]
         if isinstance(kernel_size, int):
             sizes = (kernel_size,)
         elif isinstance(kernel_size, tuple):
@@ -229,5 +230,6 @@ class Preprocessor:
         filtered = dft_shift * mask
         filtered_shift = np.fft.ifftshift(filtered)
         restored = np.fft.ifft2(filtered_shift)
-        normalized = cv2.normalize(np.abs(restored), None, 0, 255, cv2.NORM_MINMAX)
+        magnitude = np.abs(restored).astype(np.float32)
+        normalized = cv2.normalize(magnitude, np.zeros_like(magnitude), 0, 255, cv2.NORM_MINMAX)
         return normalized.astype(np.uint8)
