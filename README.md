@@ -1,10 +1,12 @@
+**English** | [中文](README.zh-CN.md)
+
 <div align="center">
 
 # VisionGuard
 
-**工业表面缺陷检测**
+**Industrial surface-defect detection from training to a C++ inference service**
 
-*YOLOv8 · ONNX · C++ gRPC · NEU-DET*
+*YOLOv8 · ONNX Runtime · C++17 gRPC · NEU-DET*
 
 <img src="https://img.shields.io/badge/python-3.11+-blue?logo=python&logoColor=white" alt="Python">
 <img src="https://img.shields.io/badge/PyTorch-Ultralytics-ee4c2c?logo=pytorch&logoColor=white" alt="PyTorch / Ultralytics">
@@ -14,170 +16,177 @@
 <a href="https://github.com/MeaFew/visionguard/actions"><img src="https://github.com/MeaFew/visionguard/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
 <img src="https://img.shields.io/badge/license-MIT-green" alt="MIT">
 
-**中文** | <a href="./README.en.md">English</a>
-
 </div>
 
 ---
 
-## 核心结论
+## Headline
 
-> **YOLOv8n 在真实 NEU-DET 测试集上：mAP50 = 0.750、mAP50-95 = 0.422**（1800 张，train/val/test = 1440/180/180，100 epoch）。
-> 端到端全栈链路——**Python 训练 + C++ gRPC 部署**，从模型到生产推理服务一条龙交付。
-
-本项目以 YOLOv8 完成钢材表面 6 类缺陷目标检测，训练结果经 ONNX 导出后由 **C++17 + ONNX Runtime** 构建高性能推理服务，最终交付 Docker / systemd / shell 脚本化的 Linux 部署方案。
+> **YOLOv8n reaches test mAP50 = 0.750 and mAP50–95 = 0.422 on the real NEU-DET dataset.** The delivery path continues beyond Python: trained weights are exported to ONNX and served by a C++17 gRPC application with Docker and systemd deployment.
 
 <p align="center">
-  <img src="assets/deployment_summary.svg" width="900" alt="VisionGuard 六类缺陷 AP50 与部署链路">
+  <img src="assets/deployment_summary.svg" width="900" alt="VisionGuard per-class AP50 and deployment path">
 </p>
 
-### 总体指标（test 集）
+### Overall metrics
 
-| 指标 | 数值 |
+| Metric | Value |
 |---|---|
-| val mAP50 | 0.783 |
+| val mAP50 | 0.780 |
 | **test mAP50** | **0.750** |
 | **test mAP50-95** | **0.422** |
 
-### 各类别 test AP50
+### Per-class test AP50
 
-| 类别 | 中文 | AP50 |
-|---|---|---|
-| patches | 斑块 | **0.944** |
-| scratches | 划痕 | **0.914** |
-| inclusion | 夹杂 | 0.865 |
-| pitted_surface | 麻点 | 0.769 |
-| rolled-in_scale | 氧化铁皮压入 | 0.604 |
-| crazing | 裂纹 | 0.406 |
+| Class | AP50 |
+|-------|-----:|
+| patches | **0.944** |
+| scratches | **0.914** |
+| inclusion | 0.865 |
+| pitted_surface | 0.769 |
+| rolled-in_scale | 0.604 |
+| crazing | 0.406 |
 
-> 完整指标见 [`assets/real_evaluation_test.json`](assets/real_evaluation_test.json)。
+> Protocol: 1,800 NEU-DET images; train/validation/test = 1,440/180/180; 100 epochs. Full metrics: [`assets/real_evaluation_test.json`](assets/real_evaluation_test.json).
 
 <p align="center">
-  <img src="assets/real_demo_detection.jpg" alt="ONNX 推理可视化（真实测试图 inclusion_14.jpg）">
+  <img src="assets/real_demo_detection.jpg" alt="ONNX inference on real NEU-DET test image inclusion_14.jpg">
 </p>
 
 <p align="center">
-  <img src="runs/detect/models/real_train/confusion_matrix_normalized.png" width="720" alt="真实 NEU-DET 测试集归一化混淆矩阵">
+  <img src="runs/detect/models/real_train/confusion_matrix_normalized.png" width="720" alt="Normalized confusion matrix on real NEU-DET data">
 </p>
 
----
+## Architecture
+
+```mermaid
+flowchart LR
+    A[NEU-DET XML] --> B[YOLO labels]
+    B --> C[YOLOv8n training]
+    C --> D[best.pt]
+    D --> E[ONNX export]
+    E --> F[C++17 + ONNX Runtime]
+    F --> G[gRPC service]
+    G --> H[Docker / systemd]
+```
 
 <details>
-<summary><b>项目时间线</b></summary>
+<summary><b>Project timeline</b></summary>
 
-本项目于 **2025 年 8 月** 启动，在 **2025 年 8 月至 10 月** 之间迭代完善并完成。
+This project started in **August 2025** and was iteratively built and completed between **August and October 2025**.
 
-| 阶段 | 时间 | 说明 |
+| Phase | Period | Scope |
 |---|---|---|
-| 项目初始化 | 2025-08-01 ~ 2025-08-05 | 目录结构、依赖、Makefile、文档 |
-| 数据集与预处理 | 2025-08-06 ~ 2025-08-15 | NEU-DET 下载、转换、OpenCV 预处理 |
-| 模型训练 | 2025-08-16 ~ 2025-08-31 | YOLOv8 训练、评估、ONNX 导出 |
-| C++ 推理服务 | 2025-09-01 ~ 2025-09-20 | ONNX Runtime 推理 + gRPC |
-| 部署与运维 | 2025-09-21 ~ 2025-09-30 | Docker、systemd、CI |
-| 测试与文档 | 2025-10-01 ~ 2025-10-15 | pytest、集成测试、benchmark |
-| 收尾优化 | 2025-10-16 ~ 2025-10-31 | 性能调优、文档完善 |
+| Project scaffold | 2025-08-01 ~ 2025-08-05 | Directory layout, dependencies, Makefile, documentation |
+| Dataset & preprocessing | 2025-08-06 ~ 2025-08-15 | NEU-DET download, conversion, OpenCV preprocessing |
+| Model training | 2025-08-16 ~ 2025-08-31 | YOLOv8 training, evaluation, ONNX export |
+| C++ inference service | 2025-09-01 ~ 2025-09-20 | ONNX Runtime inference + gRPC |
+| Deployment & operations | 2025-09-21 ~ 2025-09-30 | Docker, systemd, CI |
+| Testing & documentation | 2025-10-01 ~ 2025-10-15 | pytest, integration tests, benchmark |
+| Final polish | 2025-10-16 ~ 2025-10-31 | Performance tuning, documentation |
 
 </details>
 
-## 快速开始
+## Quick start
 
 ```bash
-# 1. 创建并激活 Python 3.11 虚拟环境
+git clone https://github.com/MeaFew/visionguard.git
+cd visionguard
+
 python -m venv .venv
 # Linux / macOS: source .venv/bin/activate
 # Windows PowerShell: .venv\Scripts\Activate.ps1
 
-# 2. 安装依赖与项目包
 make install-dev
-
-# 3. 下载并准备 NEU-DET 数据集
 make data
 
-# 4. 训练 YOLOv8（后续命令默认读取该输出目录）
-python scripts/train_yolo.py --epochs 100 --batch 8 --device 0 --project runs/detect/models --name real_train
+# Produces the default model path used by evaluation/export/deployment
+python scripts/train_yolo.py --epochs 100 --batch 8 --device 0 \
+  --project runs/detect/models --name real_train
 
-# 5. 评估模型（默认使用上一步的真实 NEU-DET 训练结果）
 python scripts/evaluate.py --split test
-
-# 6. 导出 ONNX
 python scripts/export_onnx.py
-
-# 7. Python 端到端推理 demo
 python scripts/demo_inference.py --output reports/demo_detection.jpg
-
-# 8. 编译并运行 C++ 推理服务
-cd cpp && mkdir build && cd build
-cmake .. -DCMAKE_PREFIX_PATH="/opt/onnxruntime/lib/cmake/onnxruntime" -DONNXRuntime_DIR="/opt/onnxruntime/lib/cmake/onnxruntime"
-make -j$(nproc)
-./visionguard_server --model ../../runs/detect/models/real_train/weights/best.onnx
 ```
 
-> 仓库提交评估 JSON 与展示图，但不提交 `.pt` / `.onnx` 权重。评估、导出和部署步骤依赖第 4 步生成的 `runs/detect/models/real_train/weights/best.pt`；因此全新克隆不会误把本地已有权重当成仓库自带资源。
+The repository commits evaluation JSON and showcase images, but not `.pt` or `.onnx` weights. Evaluation, export, and deployment therefore require the training step above to create `runs/detect/models/real_train/weights/best.pt`; a clean clone cannot silently reuse a local model.
 
-## 测试
+## C++ inference service
 
 ```bash
-# Python 测试
-pytest tests/ -v
-
-# 代码格式检查
-ruff check .
-ruff format --check .
+cd cpp && mkdir build && cd build
+cmake .. \
+  -DCMAKE_PREFIX_PATH="/opt/onnxruntime/lib/cmake/onnxruntime" \
+  -DONNXRuntime_DIR="/opt/onnxruntime/lib/cmake/onnxruntime"
+make -j$(nproc)
+./visionguard_server \
+  --model ../../runs/detect/models/real_train/weights/best.onnx
 ```
 
-## 部署
+## Deployment
 
-### Docker Compose（仅推理服务）
+### Docker Compose (serving only)
 
-先导出 ONNX 模型，再启动 gRPC 服务：
+Export the ONNX model first, then start the gRPC service:
 
 ```bash
 python scripts/export_onnx.py --model runs/detect/models/real_train/weights/best.pt
 docker compose up --build
 ```
 
-### Linux 原生部署
+Compose mounts the weights **directory** read-only into the service container; with a single-file mount Docker would silently create an empty host directory when `best.onnx` is missing.
 
-`deploy.sh` 要求先导出 ONNX 模型（`python scripts/export_onnx.py`）：脚本会把 `runs/detect/models/real_train/weights/best.onnx` 显式安装到 `/opt/visionguard`（与 systemd 单元的 `ExecStart` 路径一致），缺失时会直接报错退出。
+### Linux native (systemd)
+
+`deploy.sh` requires the exported ONNX model (`python scripts/export_onnx.py`): the script explicitly installs `runs/detect/models/real_train/weights/best.onnx` into `/opt/visionguard` (matching the `ExecStart` path of the systemd unit) and fails fast with an error if it is missing.
 
 ```bash
 sudo bash deployment/scripts/deploy.sh
 sudo bash deployment/scripts/health_check.sh
 ```
 
-## 技术栈
+## Quality gates
+
+```bash
+pytest tests/ -v
+ruff check .
+ruff format --check .
+```
+
+## Tech stack
 
 - Python 3.11 + Ultralytics YOLOv8 + PyTorch
-- OpenCV 4.x（传统图像处理）
-- C++17 + ONNX Runtime 1.18+（高性能推理）
-- gRPC + Protobuf（服务通信）
-- Docker + Docker Compose（容器化部署）
-- systemd + bash（Linux 运维）
-- pytest + Catch2（测试）
-- GitHub Actions（CI/CD）
+- OpenCV 4.x (classical image processing)
+- C++17 + ONNX Runtime 1.18+ (high-performance inference)
+- gRPC + Protobuf (service communication)
+- Docker + Docker Compose (containerized deployment)
+- systemd + bash (Linux operations)
+- pytest + Catch2 (testing)
+- GitHub Actions (CI/CD)
 
-## 目录结构
+## Project structure
 
 ```text
 visionguard/
-├── configs/        # YOLOv8 训练配置
-├── cpp/            # C++ 推理服务
-├── data/           # 数据集
-├── deployment/     # Docker / systemd / 运维脚本
-├── docs/           # 文档
-├── notebooks/      # Jupyter 数据探索
-├── reports/        # 评估与 benchmark 报告
-├── scripts/        # 可执行脚本
-├── tests/          # Python 测试
-└── visionguard/    # Python 包
+├── assets/           # committed evidence and README visuals
+├── configs/          # YOLOv8 dataset/training configuration
+├── cpp/              # C++ ONNX Runtime + gRPC service
+├── data/             # NEU-DET dataset (git-ignored)
+├── deployment/       # Docker, systemd, and operations scripts
+├── docs/             # documentation
+├── notebooks/        # Jupyter data exploration
+├── reports/          # evaluation and benchmark reports
+├── scripts/          # data, training, evaluation, export, demo
+├── tests/            # Python tests
+└── visionguard/      # Python package
 ```
 
 <details>
-<summary><b>🧪 合成数据 Demo（无 NEU-DET 时验证 pipeline）</b></summary>
+<summary><b>Synthetic-data smoke test</b></summary>
 
-如果无法下载真实 NEU-DET，可使用 `scripts/generate_synthetic_data.py` 生成合成数据验证 pipeline。合成数据仅用于验证 pipeline 正确性，**不代表真实场景性能**。
+When NEU-DET cannot be downloaded, `scripts/generate_synthetic_data.py` can validate the pipeline. Synthetic data is for execution checks only and does **not** support real-world performance claims.
 
-使用 YOLOv8n 在 100 张合成样本上训练 50 epoch（CPU），测试集指标：
+Training YOLOv8n for 50 epochs (CPU) on 100 synthetic samples yields the following test metrics:
 
 ```json
 {
@@ -191,6 +200,6 @@ visionguard/
 
 </details>
 
-## 许可证
+## License
 
 MIT
